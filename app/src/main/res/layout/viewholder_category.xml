@@ -16,10 +16,11 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/imageView6"
+            android:id="@+id/imgCat"
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:layout_gravity="center"
+            android:background="@drawable/cat_0_background"
             android:padding="12dp"
             app:srcCompat="@drawable/btn_1" />
 
