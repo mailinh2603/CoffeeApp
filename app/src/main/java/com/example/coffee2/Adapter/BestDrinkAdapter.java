@@ -1,6 +1,7 @@
 package com.example.coffee2.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.coffee2.Activity.DetailActivity;
 import com.example.coffee2.Domain.Drinks;
 import com.example.coffee2.R;
 
@@ -46,6 +48,12 @@ public class BestDrinkAdapter extends RecyclerView.Adapter<BestDrinkAdapter.view
                 .load(items.get(position).getImagePath())
                 .transform(new CenterCrop(), new RoundedCorners(30))
                 .into(holder.pic);
+
+        holder.itemView.setOnClickListener(v ->{
+            Intent intent = new Intent(context, DetailActivity.class);
+            intent.putExtra("object", items.get(position));
+            context.startActivity(intent);
+        });
         }
 
     @Override

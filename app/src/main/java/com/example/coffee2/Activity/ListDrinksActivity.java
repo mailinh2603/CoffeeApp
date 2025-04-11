@@ -49,21 +49,19 @@ public class ListDrinksActivity extends BaseActivity {
 
         Query query;
         if (isSearch) {
-            if (searchText == null) searchText = "";
+
             query = myRef.orderByChild("Title").startAt(searchText).endAt(searchText + '\uf8ff');
         } else {
             query = myRef.orderByChild("CategoryId").equalTo(categoryId);
         }
-
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     for (DataSnapshot issue : snapshot.getChildren()) {
-                        Drinks drink = issue.getValue(Drinks.class);
-                        if (drink != null) list.add(drink);
+                        list.add(issue.getValue(Drinks.class));
                     }
-                    if (!list.isEmpty()) {
+                    if (list.size()>0) {
                         binding.drinkListView.setLayoutManager(new GridLayoutManager(ListDrinksActivity.this, 2));
                         adapterListDrink = new DrinkListAdapter(list);
                         binding.drinkListView.setAdapter(adapterListDrink);

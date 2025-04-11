@@ -85,7 +85,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/priceTxt"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/priceTxt"
-                tools:srcCompat="@drawable/star" />
+                app:srcCompat="@drawable/star" />
 
             <TextView
                 android:id="@+id/rateTxt"

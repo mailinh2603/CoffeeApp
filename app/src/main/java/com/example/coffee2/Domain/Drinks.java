@@ -1,6 +1,8 @@
 package com.example.coffee2.Domain;
 
-public class Drinks {
+import java.io.Serializable;
+
+public class Drinks implements Serializable {
     private int CategoryId;
     private String Description;
     private boolean BestDrink;
