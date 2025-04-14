@@ -4,15 +4,9 @@ public class Category {
     private int Id;
     private String ImagePath;
     private String Name;
-    public Category(){
-    }
+    private String TimeStamp;
 
-    public String getImagePath() {
-        return ImagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        ImagePath = imagePath;
+    public Category() {
     }
 
     public int getId() {
@@ -23,11 +17,27 @@ public class Category {
         this.Id = id;
     }
 
+    public String getImagePath() {
+        return ImagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        ImagePath = imagePath;
+    }
+
     public String getName() {
         return Name;
     }
 
     public void setName(String name) {
         Name = name;
+    }
+
+    public String getTimeStamp() {
+        return TimeStamp;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        TimeStamp = timeStamp;
     }
 }

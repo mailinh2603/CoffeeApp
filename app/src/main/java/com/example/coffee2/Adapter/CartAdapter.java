@@ -40,34 +40,34 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
 
     @Override
     public void onBindViewHolder(@NonNull CartAdapter.viewholder holder, int position) {
-        holder.title.setText(list.get(position).getTitle());
-        holder.feeEachItem.setText((list.get(position).getNumberInCart()*list.get(position).getPrice())+ " đ");
-        holder.totalEachItem.setText(list.get(position).getNumberInCart()+ " * đ"+(
-                list.get(position).getPrice()));
-        holder.num.setText(list.get(position).getNumberInCart()+"");
+        Drinks currentDrink = list.get(position);
+
+        holder.title.setText(currentDrink.getTitle());
+        holder.feeEachItem.setText((currentDrink.getNumberInCart() * currentDrink.getPrice()) + " đ");
+        holder.totalEachItem.setText(currentDrink.getNumberInCart() + " * đ" + currentDrink.getPrice());
+        holder.num.setText(String.valueOf(currentDrink.getNumberInCart()));
+
+        // Hiển thị thông tin Đường và Đá
+        holder.sugarOption.setText("Đường: " + currentDrink.getSugarOption());
+        holder.iceOption.setText("Đá: " + currentDrink.getIceOption());
 
         Glide.with(holder.itemView.getContext())
-                .load(list.get(position).getImagePath())
-                .transform(new CenterCrop(),new RoundedCorners(30))
+                .load(currentDrink.getImagePath())
+                .transform(new CenterCrop(), new RoundedCorners(30))
                 .into(holder.pic);
 
-        holder.plusItem.setOnClickListener(v -> managmentCart.plusNumberItem(list,position, new ChangeNumberItemsListener(){
-            @Override
-            public void  change(){
-                notifyDataSetChanged();
-                changeNumberItemsListener.change();
-            }
+        // Tăng giảm số lượng
+        holder.plusItem.setOnClickListener(v -> managmentCart.plusNumberItem(list, position, () -> {
+            notifyDataSetChanged();
+            changeNumberItemsListener.change();
         }));
-        holder.minusItem.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                managmentCart.minusNumberItem(list,position,() ->{
-                    notifyDataSetChanged();
-                    changeNumberItemsListener.change();
-                });
-            }
-        });
+
+        holder.minusItem.setOnClickListener(v -> managmentCart.minusNumberItem(list, position, () -> {
+            notifyDataSetChanged();
+            changeNumberItemsListener.change();
+        }));
     }
+
 
     @Override
     public int getItemCount() {
@@ -75,7 +75,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
     }
 
     public class viewholder extends RecyclerView.ViewHolder {
-        TextView title,feeEachItem, plusItem, minusItem;
+        TextView title,feeEachItem, plusItem, minusItem,iceOption,sugarOption;
         ImageView pic;
         TextView totalEachItem, num;
         public viewholder(@NonNull View itemView){
@@ -88,6 +88,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
             minusItem=itemView.findViewById(R.id.minusCartBtn);
             totalEachItem=itemView.findViewById(R.id.totalEachItem);
             num=itemView.findViewById(R.id.numberItemTxt);
+            sugarOption=itemView.findViewById(R.id.sugarOption);
+            iceOption=itemView.findViewById(R.id.iceOption);
         }
     }
 }

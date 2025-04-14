@@ -1,19 +1,35 @@
 package com.example.coffee2.Activity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.RadioButton;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.coffee2.Adapter.CommentAdapter;
+import com.example.coffee2.Domain.Comment;
 import com.example.coffee2.Domain.Drinks;
+import com.example.coffee2.Domain.IceOptions;
+import com.example.coffee2.Domain.SugarOptions;
+import com.example.coffee2.Domain.users;
 import com.example.coffee2.Helper.ManagmentCart;
 import com.example.coffee2.R;
 import com.example.coffee2.databinding.ActivityDetailBinding;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import android.widget.RadioGroup;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DetailActivity extends BaseActivity {
     ActivityDetailBinding binding;
@@ -23,12 +39,186 @@ public class DetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       binding = ActivityDetailBinding.inflate(getLayoutInflater());
-       setContentView(binding.getRoot());
-       getWindow().setStatusBarColor(getResources().getColor(R.color.black));
-       getIntentExtra();
-       setVariable();
+        binding = ActivityDetailBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        getWindow().setStatusBarColor(getResources().getColor(R.color.black));
+        getIntentExtra();
+        setVariable();
+        loadSugarOptions();
+        loadIceOptions();
+         if (object != null ) {
+             loadComments(object.getId());
+         } else {
+             Toast.makeText(this, "Không thể lấy ID của sản phẩm", Toast.LENGTH_SHORT).show();
+         }
     }
+    private void loadSugarOptions() {
+        DatabaseReference myRef = database.getReference("SugarOptions");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    RadioGroup radioGroup = findViewById(R.id.sugarRadioGroup);
+                    radioGroup.removeAllViews();
+                    for (DataSnapshot item : snapshot.getChildren()) {
+                        SugarOptions option = item.getValue(SugarOptions.class);
+                        if (option != null) {
+                            RadioButton radioButton = new RadioButton(DetailActivity.this);
+                            radioButton.setText(option.getName());
+                            radioButton.setTag(String.valueOf(option.getId())); // Ensure it is a String
+                            radioGroup.addView(radioButton);
+                        }
+                    }
+                    radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                        RadioButton selectedRadioButton = findViewById(radioGroup.getCheckedRadioButtonId());
+                        String selectedSugarId = (String) selectedRadioButton.getTag();
+                        Toast.makeText(DetailActivity.this, "Selected Sugar: " + selectedSugarId, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(DetailActivity.this, "Không tải được danh sách đường", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadIceOptions() {
+        DatabaseReference myRef = database.getReference("IceOptions");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    RadioGroup radioGroup = findViewById(R.id.iceRadioGroup);
+                    radioGroup.removeAllViews();
+                    for (DataSnapshot item : snapshot.getChildren()) {
+                        IceOptions option = item.getValue(IceOptions.class);
+                        if (option != null) {
+                            RadioButton radioButton = new RadioButton(DetailActivity.this);
+                            radioButton.setText(option.getName());
+                            radioButton.setTag(String.valueOf(option.getId())); // Ensure it is a String
+                            radioGroup.addView(radioButton);
+                        }
+                    }
+                    radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                        RadioButton selectedRadioButton = findViewById(radioGroup.getCheckedRadioButtonId());
+                        String selectedIceId = (String) selectedRadioButton.getTag();
+                        Toast.makeText(DetailActivity.this, "Selected Ice: " + selectedIceId, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(DetailActivity.this, "Không tải được danh sách đá", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private String getSelectedSugar() {
+        RadioGroup sugarGroup = findViewById(R.id.sugarRadioGroup);
+        int selectedSugarId = sugarGroup.getCheckedRadioButtonId();
+        RadioButton selectedRadioButton = findViewById(selectedSugarId);
+        return selectedRadioButton != null ? (String) selectedRadioButton.getTag() : null;
+    }
+
+    private String getSelectedIce() {
+        RadioGroup iceGroup = findViewById(R.id.iceRadioGroup);
+        int selectedIceId = iceGroup.getCheckedRadioButtonId();
+        RadioButton selectedRadioButton = findViewById(selectedIceId);
+        return selectedRadioButton != null ? (String) selectedRadioButton.getTag() : null;
+    }
+
+
+    private void loadComments(int drinkId) {
+        DatabaseReference commentRef = FirebaseDatabase.getInstance().getReference("Comment");
+
+        commentRef.orderByChild("DrinkId").equalTo(drinkId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<Comment> commentList = new ArrayList<>();
+                        List<DataSnapshot> commentSnapshots = new ArrayList<>();
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            commentSnapshots.add(data);
+                        }
+
+                        if (commentSnapshots.isEmpty()) {
+                            updateCommentList(commentList);
+                            return;
+                        }
+
+                        int[] loadedCount = {0};  // Biến đếm để biết khi nào load xong hết user
+
+                        for (DataSnapshot data : commentSnapshots) {
+                            Comment comment = data.getValue(Comment.class);
+                            if (comment != null && comment.isActive()) {
+                                String userId = comment.getUserId();
+
+                                // Truy vấn theo field "UserId" vì bạn không dùng userId làm key
+                                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users");
+
+                                userRef.orderByChild("UserId").equalTo(userId)
+                                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                if (snapshot.exists()) {
+                                                    for (DataSnapshot userSnap : snapshot.getChildren()) {
+                                                        users user = userSnap.getValue(users.class);
+                                                        if (user != null) {
+                                                            comment.setUserName(user.getUserName());
+                                                            Log.d("Adapter", "Hiển thị comment của: " + user.getUserName());
+                                                        }
+                                                    }
+                                                } else {
+                                                    Log.w("Linh", "Không tìm thấy user trong Users cho userId: " + userId);
+                                                    comment.setUserName("Ẩn danh");
+                                                }
+
+                                                commentList.add(comment);
+                                                loadedCount[0]++;
+                                                if (loadedCount[0] == commentSnapshots.size()) {
+                                                    Log.d("Linh", "Tải xong tất cả comments: " + commentList.size());
+                                                    updateCommentList(commentList);
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                                Log.e("Linh", "Lỗi khi tải thông tin người dùng: " + error.getMessage());
+                                            }
+                                        });
+                            } else {
+                                loadedCount[0]++;
+                                if (loadedCount[0] == commentSnapshots.size()) {
+                                    updateCommentList(commentList);
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(DetailActivity.this, "Lỗi khi tải bình luận", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void updateCommentList(List<Comment> commentList) {
+        RecyclerView recyclerView = findViewById(R.id.reviewRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        CommentAdapter adapter = new CommentAdapter(commentList);
+        recyclerView.setAdapter(adapter);  // Đảm bảo được gán tại đây
+    }
+
+
+
+
+
+
+
+
 
     private void setVariable(){
         managmentCart= new ManagmentCart(this);
@@ -61,6 +251,11 @@ public class DetailActivity extends BaseActivity {
         });
 
         binding.addBtn.setOnClickListener(v -> {
+            String selectedSugar = getSelectedSugar();
+            String selectedIce = getSelectedIce();
+
+            object.setSugarOption(selectedSugar);
+            object.setIceOption(selectedIce);
             object.setNumberInCart(num);
             managmentCart.insertFood(object);
         });
@@ -69,5 +264,8 @@ public class DetailActivity extends BaseActivity {
 
     private void getIntentExtra(){
         object = (Drinks) getIntent().getSerializableExtra("object");
+        if (object == null ) {
+            Toast.makeText(this, "Không thể lấy ID của sản phẩm", Toast.LENGTH_SHORT).show();
+        }
     }
 }

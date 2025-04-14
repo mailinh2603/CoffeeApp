@@ -61,6 +61,7 @@ public class CartActivity extends BaseActivity {
         binding.deliveryTxt.setText(delivery + " đ");
         binding.totalTxt.setText(total + " đ");
     }
+
     private void setVariable(){
         binding.backBtn.setOnClickListener(v ->finish());
     }

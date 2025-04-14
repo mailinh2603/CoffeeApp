@@ -22,8 +22,7 @@
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-             />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/titleTxt"
@@ -54,27 +53,51 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:text="0 đ"
+            android:textColor="@color/red"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/red"
             app:layout_constraintBottom_toBottomOf="@+id/pic"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <TextView
+            android:id="@+id/sugarOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Đường: Không"
+            android:textColor="@color/blue_grey"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@+id/titleTxt"
+            app:layout_constraintTop_toBottomOf="@+id/totalEachItem" />
+
+        <!-- Ice Option (Đá) -->
+        <TextView
+            android:id="@+id/iceOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đá: Ít"
+            android:textColor="@color/blue_grey"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@+id/sugarOption"
+            app:layout_constraintTop_toBottomOf="@+id/sugarOption" />
+
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
             android:layout_width="90dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="@+id/pic"
-            app:layout_constraintStart_toStartOf="@+id/totalEachItem">
+            app:layout_constraintStart_toStartOf="@+id/totalEachItem"
+            app:layout_constraintTop_toBottomOf="@+id/iceOption">
 
             <TextView
                 android:id="@+id/numberItemTxt"
                 android:layout_width="24dp"
-                android:gravity="center"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="0"
                 android:textColor="@color/blue_grey"
-                android:textStyle="bold"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/plusCartBtn"
                 app:layout_constraintStart_toEndOf="@+id/minusCartBtn"
@@ -84,11 +107,11 @@
                 android:id="@+id/minusCartBtn"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:text="-"
                 android:background="@drawable/edittext_background"
-                android:textStyle="bold"
                 android:gravity="center"
+                android:text="-"
                 android:textColor="@color/red"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -97,11 +120,11 @@
                 android:id="@+id/plusCartBtn"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:text="+"
                 android:background="@drawable/edittext_background"
-                android:textStyle="bold"
                 android:gravity="center"
+                android:text="+"
                 android:textColor="@color/red"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 tools:layout_editor_absoluteY="0dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>

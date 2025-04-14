@@ -1,9 +1,9 @@
 package com.example.coffee2.Domain;
 
-public class Location {
+public class Beverages {
     private int Id;
     private String Loc;
-    public Location(){
+    public Beverages(){
 
     }
 

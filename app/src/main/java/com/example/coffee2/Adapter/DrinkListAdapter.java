@@ -39,7 +39,7 @@ public class DrinkListAdapter extends RecyclerView.Adapter<DrinkListAdapter.view
     @Override
     public void onBindViewHolder(@NonNull DrinkListAdapter.viewholder holder, int position) {
         holder.titleTxt.setText(items.get(position).getTitle());
-        holder.timeTxt.setText(items.get(position).getTimeValue() + " min");
+
         holder.priceTxt.setText(items.get(position).getPrice() + "đ");
         holder.rateTxt.setText("" + items.get(position).getStar());
 

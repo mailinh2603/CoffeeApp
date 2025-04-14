@@ -41,7 +41,7 @@ public class BestDrinkAdapter extends RecyclerView.Adapter<BestDrinkAdapter.view
     public void onBindViewHolder(@NonNull BestDrinkAdapter.viewholder holder, int position) {
         holder.titleTxt.setText(items.get(position).getTitle());
         holder.priceTxt.setText(items.get(position).getPrice()+"đ");
-        holder.timeTxt.setText(items.get(position).getTimeValue()+ " min");
+
         holder.starTxt.setText(""+items.get(position).getStar());
 
         Glide.with(context)

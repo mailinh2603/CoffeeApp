@@ -5,22 +5,26 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.coffee2.Adapter.BestDrinkAdapter;
 import com.example.coffee2.Adapter.CategoryAdapter;
+import com.example.coffee2.Domain.Beverages;
 import com.example.coffee2.Domain.Category;
 import com.example.coffee2.Domain.Drinks;
-import com.example.coffee2.Domain.Location;
+import com.example.coffee2.Domain.Beverages;
 import com.example.coffee2.Domain.Price;
 import com.example.coffee2.Domain.Time;
 import com.example.coffee2.R;
@@ -44,6 +48,14 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());;
+
+        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
+        ImageView filterBtn = findViewById(R.id.filterBtn);
+
+        // Xử lý sự kiện click nút filter
+        filterBtn.setOnClickListener(v -> {
+            drawerLayout.openDrawer(GravityCompat.START);
+        });
 
         initLocation();
         initTime();
@@ -108,16 +120,16 @@ public class MainActivity extends BaseActivity {
 
     private void initLocation(){
         DatabaseReference myRef=database.getReference("Location");
-        ArrayList<Location> list=new ArrayList<>();
+        ArrayList<Beverages> list=new ArrayList<>();
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.exists()){
                     for(DataSnapshot issue: snapshot.getChildren()){
-                        list.add(issue.getValue(Location.class));
+                        list.add(issue.getValue(Beverages.class));
 
                     }
-                    ArrayAdapter<Location> adapter=new ArrayAdapter<>(MainActivity.this,R.layout.sp_item,list);
+                    ArrayAdapter<Beverages> adapter=new ArrayAdapter<>(MainActivity.this,R.layout.sp_item,list);
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     binding.locationSp.setAdapter(adapter);
                 }

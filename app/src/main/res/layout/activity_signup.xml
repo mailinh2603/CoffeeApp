@@ -56,7 +56,7 @@
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="32dp"
                 android:layout_marginStart="32dp"
-                android:hint="Email address"
+                android:hint="Nhập email"
                 android:textAlignment="center"
                 android:textColorHint="@color/blue_grey"
                 android:textSize="16sp"
@@ -71,7 +71,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="32dp"
                 android:layout_marginStart="32dp"
-                android:hint="Password"
+                android:hint="Nhập mật khẩu"
                 android:textAlignment="center"
                 android:textColorHint="@color/blue_grey"
                 android:textSize="16sp"
@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="32dp"
                 android:background="@drawable/red_button_background"
-                android:text="Sign Up"
+                android:text="Đăng ký"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -95,7 +95,7 @@
                 android:id="@+id/textView3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Are you a member? Login"
+                android:text="Bạn đã có tài khoản? Đăng nhập ngay"
                 android:textAlignment="center"
                 android:textSize="16sp" />
 
