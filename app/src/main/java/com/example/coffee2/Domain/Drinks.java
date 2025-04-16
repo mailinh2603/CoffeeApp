@@ -20,24 +20,9 @@ public class Drinks implements Serializable {
     private int numberInCart;
     private String sugarOption;
     private String iceOption;
-    private int sugarOptionId;  // Đảm bảo rằng đây là ID đường
-    private String iceOptionId;
 
-    public int getSugarOptionId() {
-        return sugarOptionId;
-    }
 
-    public void setSugarOptionId(int sugarOptionId) {
-        this.sugarOptionId = sugarOptionId;
-    }
 
-    public String getIceOptionId() {
-        return iceOptionId;
-    }
-
-    public void setIceOptionId(String iceOptionId) {
-        this.iceOptionId = iceOptionId;
-    }
 
     public String getSugarOption() {
         return sugarOption;

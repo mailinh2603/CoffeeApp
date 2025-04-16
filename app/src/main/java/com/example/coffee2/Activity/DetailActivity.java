@@ -2,7 +2,6 @@ package com.example.coffee2.Activity;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.RadioButton;
 
 import androidx.annotation.NonNull;
@@ -13,8 +12,6 @@ import com.bumptech.glide.Glide;
 import com.example.coffee2.Adapter.CommentAdapter;
 import com.example.coffee2.Domain.Comment;
 import com.example.coffee2.Domain.Drinks;
-import com.example.coffee2.Domain.IceOptions;
-import com.example.coffee2.Domain.SugarOptions;
 import com.example.coffee2.Domain.users;
 import com.example.coffee2.Helper.ManagmentCart;
 import com.example.coffee2.R;
@@ -52,84 +49,70 @@ public class DetailActivity extends BaseActivity {
              Toast.makeText(this, "Không thể lấy ID của sản phẩm", Toast.LENGTH_SHORT).show();
          }
     }
-    private void loadSugarOptions() {
-        DatabaseReference myRef = database.getReference("SugarOptions");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    RadioGroup radioGroup = findViewById(R.id.sugarRadioGroup);
-                    radioGroup.removeAllViews();
-                    for (DataSnapshot item : snapshot.getChildren()) {
-                        SugarOptions option = item.getValue(SugarOptions.class);
-                        if (option != null) {
-                            RadioButton radioButton = new RadioButton(DetailActivity.this);
-                            radioButton.setText(option.getName());
-                            radioButton.setTag(String.valueOf(option.getId())); // Ensure it is a String
-                            radioGroup.addView(radioButton);
-                        }
-                    }
-                    radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                        RadioButton selectedRadioButton = findViewById(radioGroup.getCheckedRadioButtonId());
-                        String selectedSugarId = (String) selectedRadioButton.getTag();
-                        Toast.makeText(DetailActivity.this, "Selected Sugar: " + selectedSugarId, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(DetailActivity.this, "Không tải được danh sách đường", Toast.LENGTH_SHORT).show();
+    private void loadSugarOptions() {
+        RadioGroup radioGroup = findViewById(R.id.sugarRadioGroup);
+        radioGroup.removeAllViews();
+
+        String[] sugarOptions = {"0%", "30%", "50%", "100%"};
+        for (String option : sugarOptions) {
+            RadioButton radioButton = new RadioButton(this);
+            radioButton.setText(option);
+            radioButton.setTag(option);
+            if (option.equals("100%")) {
+                radioButton.setChecked(true);
             }
+            radioGroup.addView(radioButton);
+        }
+
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            RadioButton selectedRadioButton = findViewById(checkedId);
+            String selectedSugar = (String) selectedRadioButton.getTag();
+            Toast.makeText(this, "Selected Sugar: " + selectedSugar, Toast.LENGTH_SHORT).show();
         });
     }
 
     private void loadIceOptions() {
-        DatabaseReference myRef = database.getReference("IceOptions");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    RadioGroup radioGroup = findViewById(R.id.iceRadioGroup);
-                    radioGroup.removeAllViews();
-                    for (DataSnapshot item : snapshot.getChildren()) {
-                        IceOptions option = item.getValue(IceOptions.class);
-                        if (option != null) {
-                            RadioButton radioButton = new RadioButton(DetailActivity.this);
-                            radioButton.setText(option.getName());
-                            radioButton.setTag(String.valueOf(option.getId())); // Ensure it is a String
-                            radioGroup.addView(radioButton);
-                        }
-                    }
-                    radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                        RadioButton selectedRadioButton = findViewById(radioGroup.getCheckedRadioButtonId());
-                        String selectedIceId = (String) selectedRadioButton.getTag();
-                        Toast.makeText(DetailActivity.this, "Selected Ice: " + selectedIceId, Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
+        RadioGroup radioGroup = findViewById(R.id.iceRadioGroup);
+        radioGroup.removeAllViews();
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(DetailActivity.this, "Không tải được danh sách đá", Toast.LENGTH_SHORT).show();
+        String[] iceOptions = {"0%", "30%", "50%", "100%"};
+        for (String option : iceOptions) {
+            RadioButton radioButton = new RadioButton(this);
+            radioButton.setText(option);
+            radioButton.setTag(option);
+            if (option.equals("100%")) {
+                radioButton.setChecked(true);
             }
+            radioGroup.addView(radioButton);
+        }
+
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            RadioButton selectedRadioButton = findViewById(checkedId);
+            String selectedIce = (String) selectedRadioButton.getTag();
+            Toast.makeText(this, "Selected Ice: " + selectedIce, Toast.LENGTH_SHORT).show();
         });
     }
 
     private String getSelectedSugar() {
-        RadioGroup sugarGroup = findViewById(R.id.sugarRadioGroup);
-        int selectedSugarId = sugarGroup.getCheckedRadioButtonId();
-        RadioButton selectedRadioButton = findViewById(selectedSugarId);
-        return selectedRadioButton != null ? (String) selectedRadioButton.getTag() : null;
+        RadioGroup radioGroup = findViewById(R.id.sugarRadioGroup);
+        int checkedId = radioGroup.getCheckedRadioButtonId();
+        if (checkedId != -1) {
+            RadioButton selectedRadioButton = findViewById(checkedId);
+            return (String) selectedRadioButton.getTag();
+        }
+        return "";
     }
 
     private String getSelectedIce() {
-        RadioGroup iceGroup = findViewById(R.id.iceRadioGroup);
-        int selectedIceId = iceGroup.getCheckedRadioButtonId();
-        RadioButton selectedRadioButton = findViewById(selectedIceId);
-        return selectedRadioButton != null ? (String) selectedRadioButton.getTag() : null;
+        RadioGroup radioGroup = findViewById(R.id.iceRadioGroup);
+        int checkedId = radioGroup.getCheckedRadioButtonId();
+        if (checkedId != -1) {
+            RadioButton selectedRadioButton = findViewById(checkedId);
+            return (String) selectedRadioButton.getTag();
+        }
+        return "";
     }
-
 
     private void loadComments(int drinkId) {
         DatabaseReference commentRef = FirebaseDatabase.getInstance().getReference("Comment");
@@ -211,14 +194,6 @@ public class DetailActivity extends BaseActivity {
         CommentAdapter adapter = new CommentAdapter(commentList);
         recyclerView.setAdapter(adapter);  // Đảm bảo được gán tại đây
     }
-
-
-
-
-
-
-
-
 
     private void setVariable(){
         managmentCart= new ManagmentCart(this);

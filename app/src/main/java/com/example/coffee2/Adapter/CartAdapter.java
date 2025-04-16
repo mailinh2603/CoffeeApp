@@ -47,16 +47,21 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
         holder.totalEachItem.setText(currentDrink.getNumberInCart() + " * đ" + currentDrink.getPrice());
         holder.num.setText(String.valueOf(currentDrink.getNumberInCart()));
 
-        // Hiển thị thông tin Đường và Đá
-        holder.sugarOption.setText("Đường: " + currentDrink.getSugarOption());
-        holder.iceOption.setText("Đá: " + currentDrink.getIceOption());
+
+        String sugar = currentDrink.getSugarOption();
+        if (sugar == null || sugar.isEmpty()) sugar = "100%";
+        holder.sugarOption.setText("Đường: " + sugar);
+
+        String ice = currentDrink.getIceOption();
+        if (ice == null || ice.isEmpty()) ice = "100%";
+        holder.iceOption.setText("Đá: " + ice);
 
         Glide.with(holder.itemView.getContext())
                 .load(currentDrink.getImagePath())
                 .transform(new CenterCrop(), new RoundedCorners(30))
                 .into(holder.pic);
 
-        // Tăng giảm số lượng
+
         holder.plusItem.setOnClickListener(v -> managmentCart.plusNumberItem(list, position, () -> {
             notifyDataSetChanged();
             changeNumberItemsListener.change();

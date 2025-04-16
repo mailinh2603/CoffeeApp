@@ -22,20 +22,31 @@ public class ManagmentCart {
         ArrayList<Drinks> listpop = getListCart();
         boolean existAlready = false;
         int n = 0;
+
         for (int i = 0; i < listpop.size(); i++) {
-            if (listpop.get(i).getTitle().equals(item.getTitle())) {
+            Drinks current = listpop.get(i);
+
+            if (current.getTitle().equals(item.getTitle()) &&
+                    ((current.getSugarOption() == null && item.getSugarOption() == null) ||
+                            (current.getSugarOption() != null && current.getSugarOption().equals(item.getSugarOption()))) &&
+                    ((current.getIceOption() == null && item.getIceOption() == null) ||
+                            (current.getIceOption() != null && current.getIceOption().equals(item.getIceOption())))
+            ) {
                 existAlready = true;
                 n = i;
                 break;
             }
         }
-        if(existAlready){
-            listpop.get(n).setNumberInCart(item.getNumberInCart());
-        }else{
+
+        if (existAlready) {
+
+            listpop.get(n).setNumberInCart(listpop.get(n).getNumberInCart() + item.getNumberInCart());
+        } else {
             listpop.add(item);
         }
-        tinyDB.putListObject("CartList",listpop);
-        Toast.makeText(context, "Added to your Cart", Toast.LENGTH_SHORT).show();
+
+        tinyDB.putListObject("CartList", listpop);
+        Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
     }
 
     public ArrayList<Drinks> getListCart() {

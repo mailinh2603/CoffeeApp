@@ -48,31 +48,33 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <EditText
-                    android:id="@+id/editTextText"
-                    android:layout_width="wrap_content"
+                <!-- Spinner để chọn Coupon -->
+                <Spinner
+                    android:id="@+id/spinnerCoupons"
+                    android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/grey_background"
-                    android:ems="10"
-                    android:hint="Nhập mã giảm giá"
-                    android:inputType="text"
-                    android:textAlignment="center"
-                    android:textColorHint="@color/blue_grey"
-                    android:textSize="14sp" />
+                    android:drawableEnd="@drawable/ic_arrow_down"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="12dp"
+                    android:spinnerMode="dropdown"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/blue_grey" />
 
+                <!-- Button để áp dụng coupon -->
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/button"
+                    android:id="@+id/buttonApplyCoupon"
                     style="@android:style/Widget.Button"
                     android:layout_width="145dp"
                     android:layout_height="40dp"
                     android:background="@drawable/red_button_background_cart"
-                    android:text="Enter"
+                    android:text="Áp dụng"
                     android:textColor="@color/white" />
             </LinearLayout>
 
