@@ -6,36 +6,33 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.coffee2.Adapter.BestDrinkAdapter;
 import com.example.coffee2.Adapter.CategoryAdapter;
 import com.example.coffee2.Domain.Beverages;
 import com.example.coffee2.Domain.Category;
 import com.example.coffee2.Domain.Drinks;
-import com.example.coffee2.Domain.Beverages;
 import com.example.coffee2.Domain.Price;
 import com.example.coffee2.Domain.Time;
 import com.example.coffee2.R;
-import com.example.coffee2.databinding.ActivityLoginBinding;
 import com.example.coffee2.databinding.ActivityMainBinding;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Logger;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
@@ -48,21 +45,25 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());;
-
+        setupNavigationDrawer();
         DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
         ImageView filterBtn = findViewById(R.id.filterBtn);
 
-        // Xử lý sự kiện click nút filter
         filterBtn.setOnClickListener(v -> {
             drawerLayout.openDrawer(GravityCompat.START);
         });
 
-        initLocation();
-        initTime();
-        initPrice();
+        binding.viewAllTxt.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ListDrinksActivity.class);
+            intent.putExtra("isBestDrink", true);
+            startActivity(intent);
+        });
+
         initBestDrink();
         initCategory();
         setVariable();
+        initBanner();
+        getUserName();
     }
 
     private void setVariable() {
@@ -80,6 +81,60 @@ public class MainActivity extends BaseActivity {
             }
         });
         binding.cartBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this,CartActivity.class)));
+    }
+
+    private void initBanner() {
+        DatabaseReference myRef = database.getReference("Banners");
+        binding.progressBar2.setVisibility(View.VISIBLE);
+
+        Query query = myRef.orderByChild("Active").equalTo(true); // Lọc banner có Active = true
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot issue : snapshot.getChildren()) {
+                        String imageUrl = issue.child("ImagePath").getValue(String.class);
+                        if (imageUrl != null) {
+                            Glide.with(MainActivity.this)
+                                    .load(imageUrl)
+                                    .transform(new RoundedCorners(18))
+                                    .into(binding.bannerBtn);
+                        }
+                    }
+                }
+                binding.progressBar2.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                binding.progressBar2.setVisibility(View.GONE);
+                Log.e("FirebaseError", error.getMessage());
+            }
+        });
+    }
+
+    private void getUserName() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); // lấy trực tiếp từ Auth
+
+        if (userId != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String userName = snapshot.child("userName").getValue(String.class);
+                    if (userName != null) {
+                        TextView userNameTxt = findViewById(R.id.userNametxt);
+                        userNameTxt.setText(userName);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(MainActivity.this, "Lỗi truy vấn dữ liệu", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void initBestDrink(){
@@ -100,7 +155,9 @@ public class MainActivity extends BaseActivity {
                         }
                     }
                     if(list.size()>0){
-                        binding.bestDrinkView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                        binding.bestDrinkView.setLayoutManager(
+                                new GridLayoutManager(MainActivity.this, 2)
+                        );
                         RecyclerView.Adapter adapter= new BestDrinkAdapter(list);
                         binding.bestDrinkView.setAdapter(adapter);
                     }
@@ -117,77 +174,6 @@ public class MainActivity extends BaseActivity {
 
     }
 
-
-    private void initLocation(){
-        DatabaseReference myRef=database.getReference("Location");
-        ArrayList<Beverages> list=new ArrayList<>();
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.exists()){
-                    for(DataSnapshot issue: snapshot.getChildren()){
-                        list.add(issue.getValue(Beverages.class));
-
-                    }
-                    ArrayAdapter<Beverages> adapter=new ArrayAdapter<>(MainActivity.this,R.layout.sp_item,list);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    binding.locationSp.setAdapter(adapter);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
-    private void initTime(){
-        DatabaseReference myRef=database.getReference("Time");
-        ArrayList<Time> list=new ArrayList<>();
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.exists()){
-                    for(DataSnapshot issue: snapshot.getChildren()){
-                        list.add(issue.getValue(Time.class));
-                    }
-                    ArrayAdapter<Time> adapter=new ArrayAdapter<>(MainActivity.this,R.layout.sp_item,list);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    binding.timeSp.setAdapter(adapter);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
-    private void initPrice() {
-        DatabaseReference myRef = database.getReference("Price");
-        ArrayList<Price> list = new ArrayList<>();
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    for (DataSnapshot issue : snapshot.getChildren()) {
-                        list.add(issue.getValue(Price.class));
-                    }
-                    ArrayAdapter<Price> adapter = new ArrayAdapter<>(MainActivity.this, R.layout.sp_item, list);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    binding.priceSp.setAdapter(adapter);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
     private void initCategory(){
         DatabaseReference myRef = database.getReference("Category");
         binding.progressBarCategory.setVisibility(View.VISIBLE);
@@ -201,7 +187,9 @@ public class MainActivity extends BaseActivity {
                         list.add(issue.getValue(Category.class));
                     }
                     if(list.size()>0){
-                        binding.categoryView.setLayoutManager(new GridLayoutManager(MainActivity.this, 4));
+                        binding.categoryView.setLayoutManager(
+                                new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false)
+                        );
                         RecyclerView.Adapter adapter= new CategoryAdapter(list);
                         binding.categoryView.setAdapter(adapter);
                     }
@@ -217,5 +205,34 @@ public class MainActivity extends BaseActivity {
         });
 
     }
+
+    private void setupNavigationDrawer() {
+        NavigationView navigationView = findViewById(R.id.navigationView);
+
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_settings) {
+                // Mở EditProfileActivity
+                Intent intent = new Intent(MainActivity.this, EditProfileActivity.class);
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                Log.d("NavigationDrawer", "UserId: " + userId);
+                intent.putExtra("UserId", userId);
+                startActivity(intent);
+            } else if (id == R.id.nav_logout) {
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                finish();
+            } else if (id == R.id.nav_resetPass) {
+                Intent intent = new Intent(MainActivity.this, ResetPasswordActivity.class);
+                startActivity(intent);
+            }
+
+            DrawerLayout drawer = findViewById(R.id.drawerLayout);
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
+        });
+    }
+
 }
 

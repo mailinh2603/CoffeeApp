@@ -43,13 +43,13 @@ public class CartActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       binding = ActivityCartBinding.inflate(getLayoutInflater());
-       setContentView(binding.getRoot());
-       managmentCart = new ManagmentCart(this);
-       setVariable();
-       calculateCart();
-       initList();
-       loadCoupons();
+        binding = ActivityCartBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        managmentCart = new ManagmentCart(this);
+        setVariable();
+        calculateCart();
+        initList();
+        loadCoupons();
     }
 
     private void initList() {
@@ -65,8 +65,8 @@ public class CartActivity extends BaseActivity {
         LinearLayoutManager linearLayoutManager= new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
         binding.cartView.setLayoutManager(linearLayoutManager);
         adapter = new CartAdapter(managmentCart.getListCart(), this, () -> {
-            calculateCart();         // Cập nhật tổng tiền
-            reloadCouponSpinner();   // Làm mới lại danh sách coupon
+            calculateCart();
+            reloadCouponSpinner();
         });
         binding.cartView.setAdapter(adapter);
     }
@@ -78,8 +78,19 @@ public class CartActivity extends BaseActivity {
         double totalFeeRaw = managmentCart.getTotalFee(); // ← log chỗ này
         Log.d("DEBUG_CART", "Total raw fee: " + totalFeeRaw);
 
+        String selectedCouponCode = (String) binding.spinnerCoupons.getSelectedItem();
+        double discount = 0.0;
+
+        if (selectedCouponCode != null) {
+            Coupon selectedCoupon = findCouponByCode(selectedCouponCode);
+            if (selectedCoupon != null && totalFeeRaw >= selectedCoupon.getMinPurchaseAmount()) {
+                discount = (totalFeeRaw * selectedCoupon.getDiscountPercentage()) / 100.0;
+            }
+        }
+
+        discountAmount = Math.round(discount * 100.0) / 100.0;
         tax = Math.round(totalFeeRaw * percenTax * 100.0) / 100.0;
-        double total = Math.round((totalFeeRaw + tax + delivery) * 100.0) / 100.0;
+        double total = Math.round((totalFeeRaw + tax + delivery - discountAmount) * 100.0) / 100.0;
         double itemTotal = Math.round(totalFeeRaw * 100.0) / 100.0;
 
         NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
@@ -89,13 +100,13 @@ public class CartActivity extends BaseActivity {
         binding.totalFeeTxt.setText(format.format(itemTotal) + " đ");
         binding.taxTxt.setText(format.format(tax) + " đ");
         binding.deliveryTxt.setText(format.format(delivery) + " đ");
+        binding.discountTxt.setText("-" + format.format(discountAmount) + " đ");
         binding.totalTxt.setText(format.format(total) + " đ");
     }
 
     private void loadCoupons() {
         DatabaseReference couponsRef = FirebaseDatabase.getInstance().getReference("Coupon");
 
-        // Lắng nghe dữ liệu từ Firebase
         couponsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -103,20 +114,14 @@ public class CartActivity extends BaseActivity {
                 couponList.clear();
 
                 double totalAmount = managmentCart.getTotalFee(); // Lấy giá trị đơn hàng
-                Log.d("DEBUG_CART", "Total order amount: " + totalAmount);
-
                 // Lọc các coupon đủ điều kiện
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Coupon coupon = snapshot.getValue(Coupon.class); // Lấy thông tin coupon
-
                     if (coupon != null) {
-                        Log.d("DEBUG_CART", "Coupon loaded: " + coupon.getCouponCode() + " with MinPurchaseAmount: " + coupon.getMinPurchaseAmount());
-
                         // Kiểm tra nếu giá trị đơn hàng đủ điều kiện để áp dụng coupon
                         if (totalAmount >= coupon.getMinPurchaseAmount()) {
                             // Kiểm tra ngày hết hạn của coupon (ExpirationDate)
                             Date expirationDate = coupon.getExpirationDateAsDate();
-
                             // So sánh với ngày hiện tại
                             if (expirationDate != null && expirationDate.after(new Date())) {
                                 availableCoupons.add(coupon);
@@ -127,7 +132,6 @@ public class CartActivity extends BaseActivity {
                         }
                     }
                 }
-
                 // Kiểm tra nếu có coupon hợp lệ
                 if (couponList.isEmpty()) {
                     Log.d("DEBUG_CART", "No valid coupon available");
@@ -136,12 +140,10 @@ public class CartActivity extends BaseActivity {
                     Log.d("DEBUG_CART", "Valid coupons available: " + couponList.size());
                     binding.spinnerCoupons.setVisibility(View.VISIBLE); // Hiển thị Spinner nếu có coupon hợp lệ
 
-                    // Populate Spinner với các mã coupon
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(CartActivity.this, android.R.layout.simple_spinner_item, couponList);
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     binding.spinnerCoupons.setAdapter(adapter);
 
-                    // Set up listener khi người dùng chọn coupon
                     binding.spinnerCoupons.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -152,15 +154,11 @@ public class CartActivity extends BaseActivity {
                             if (totalAmount >= selectedCoupon.getMinPurchaseAmount()) {
                                 discount = (totalAmount * selectedCoupon.getDiscountPercentage()) / 100;
                             }
-
-                            Log.d("DEBUG_CART", "Discount applied: " + discount);
-                            // Cập nhật lại tổng tiền sau khi áp dụng coupon
                             calculateCart();
                         }
 
                         @Override
                         public void onNothingSelected(AdapterView<?> parentView) {
-                            // Không có coupon nào được chọn
                         }
                     });
                 }
@@ -182,8 +180,8 @@ public class CartActivity extends BaseActivity {
         return null;
     }
     private void reloadCouponSpinner() {
-        loadCoupons(); // Gọi lại để cập nhật danh sách coupon
-        binding.spinnerCoupons.setSelection(0); // Reset lại lựa chọn về đầu tiên
+        loadCoupons();
+        binding.spinnerCoupons.setSelection(0);
     }
 
     private void setVariable(){

@@ -148,7 +148,7 @@
                     android:textColor="@color/blue_grey"/>
 
                 <TextView
-                    android:id="@+id/textView6"
+                    android:id="@+id/signUpNowTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Đăng ký ngay"

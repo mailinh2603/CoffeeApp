@@ -3,6 +3,7 @@ package com.example.coffee2.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -26,6 +27,15 @@ ActivityLoginBinding binding;
         binding= ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        TextView signUpNowTxt = findViewById(R.id.signUpNowTxt);
+        signUpNowTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
+                startActivity(intent);
+            }
+        });
+
         setVariable();
 
     }
@@ -37,8 +47,8 @@ ActivityLoginBinding binding;
             if(!email.isEmpty() && !password.isEmpty()){
                 mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(LoginActivity.this, task -> {
                     if(task.isSuccessful()){
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
                     }else{
 
                     }

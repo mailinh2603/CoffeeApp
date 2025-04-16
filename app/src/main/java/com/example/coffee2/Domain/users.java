@@ -12,12 +12,20 @@ public class users {
 
     }
 
+    public users(String userName, String email, String address, String birthDate, String phoneNumber) {
+        UserName = userName;
+        Email = email;
+        Address = address;
+        BirthDate = birthDate;
+        PhoneNumber = phoneNumber;
+    }
+
     public String getId() {
         return UserId;
     }
 
-    public void setId(String id) {
-        this.UserId = id;
+    public void setUserId(String userId) {
+        this.UserId = userId;
     }
 
     public String getUserName() {
@@ -58,5 +66,17 @@ public class users {
 
     public void setBirthDate(String birthDate) {
         BirthDate = birthDate;
+    }
+
+
+    @Override
+    public String toString() {
+        return "users{" +
+                "userName='" + UserName + '\'' +
+                ", email='" + Email + '\'' +
+                ", address='" + Address + '\'' +
+                ", phoneNumber='" + PhoneNumber + '\'' +
+                ", birthDate='" + BirthDate + '\'' +
+                '}';
     }
 }

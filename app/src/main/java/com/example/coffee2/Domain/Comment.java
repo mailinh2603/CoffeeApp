@@ -1,7 +1,9 @@
 package com.example.coffee2.Domain;
-
+import com.google.firebase.database.IgnoreExtraProperties;
+import com.google.firebase.database.PropertyName;
+@IgnoreExtraProperties
 public class Comment {
-    private int CommentId;
+    private String CommentId;
     private String CommentDetail;
     private String Cublish;
     private int Rating;
@@ -12,50 +14,51 @@ public class Comment {
 
     public Comment() {}
 
-    public int getCommentId() {
+    @PropertyName("CommentId")
+    public String getCommentId() {
         return CommentId;
     }
-
-    public void setCommentId(int commentId) {
+    @PropertyName("CommentId")
+    public void setCommentId(String commentId) {
         CommentId = commentId;
     }
-
+    @PropertyName("CommentDetail")
     public String getCommentDetail() {
         return CommentDetail;
     }
-
+    @PropertyName("CommentDetail")
     public void setCommentDetail(String commentDetail) {
         CommentDetail = commentDetail;
     }
-
+    @PropertyName("Cublish")
     public String getCublish() {
         return Cublish;
     }
-
+    @PropertyName("Cublish")
     public void setCublish(String cublish) {
         Cublish = cublish;
     }
-
+    @PropertyName("Rating")
     public int getRating() {
         return Rating;
     }
-
+    @PropertyName("Rating")
     public void setRating(int rating) {
         Rating = rating;
     }
-
+    @PropertyName("Active")
     public boolean isActive() {
         return Active;
     }
-
+    @PropertyName("Active")
     public void setActive(boolean active) {
         Active = active;
     }
-
+    @PropertyName("UserId")
     public String getUserId() {
         return UserId;
     }
-
+    @PropertyName("UserId")
     public void setUserId(String userId) {
         UserId = userId;
     }
@@ -66,11 +69,11 @@ public class Comment {
     public void setUserName(String userName) {
         this.UserName = userName;
     }
-
+    @PropertyName("DrinkId")
     public int getDrinkId() {
         return DrinkId;
     }
-
+    @PropertyName("DrinkId")
     public void setDrinkId(int drinkId) {
         DrinkId = drinkId;
     }

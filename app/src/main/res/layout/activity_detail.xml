@@ -305,6 +305,57 @@
                     android:overScrollMode="never"
                     android:nestedScrollingEnabled="false" />
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/paginationLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:padding="4dp">
+
+                <!-- Nút "Trước" -->
+                <Button
+                    android:id="@+id/btnPrevious"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Previous"
+                    android:background="@color/white"
+                    android:textColor="@color/red"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:enabled="false" />
+
+                <!-- Hiển thị số trang hiện tại -->
+                <TextView
+                    android:id="@+id/tvCurrentPage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Page 1"
+                    android:background="@color/white"
+                    android:textColor="@color/red"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp" />
+
+                <!-- Nút "Tiếp theo" -->
+                <Button
+                    android:id="@+id/btnNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Next"
+                    android:background="@color/white"
+                    android:textColor="@color/red"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="3dp"
+                    android:enabled="true" />
+
+            </LinearLayout>
 
             <!-- Phần nhập đánh giá -->
             <TextView
@@ -330,7 +381,10 @@
                     android:layout_height="wrap_content"
                     android:numStars="5"
                     android:progressTint="#FFC107"
-                    android:stepSize="1" />
+                    android:stepSize="1"
+                    android:rating="0"
+                    android:isIndicator="false"
+                    />
 
                 <EditText
                     android:id="@+id/reviewEditText"

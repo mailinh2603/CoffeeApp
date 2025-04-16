@@ -126,6 +126,16 @@
                     app:layout_constraintTop_toBottomOf="@+id/textView18" />
 
                 <TextView
+                    android:id="@+id/textView21"
+                    style="@style/textStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Giảm giá"
+                    app:layout_constraintStart_toStartOf="@+id/textView20"
+                    app:layout_constraintTop_toBottomOf="@+id/textView20" />
+
+                <TextView
                     android:id="@+id/totalFeeTxt"
                     style="@style/textStyle"
                     android:layout_width="wrap_content"
@@ -153,19 +163,27 @@
                     android:layout_marginTop="8dp"
                     android:text="đ"
                     app:layout_constraintEnd_toEndOf="@+id/deliveryTxt"
+                    app:layout_constraintStart_toStartOf="@+id/deliveryTxt"
                     app:layout_constraintTop_toBottomOf="@+id/deliveryTxt" />
+
+                <TextView
+                    android:id="@+id/discountTxt"
+                    style="@style/textStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="đ"
+                    app:layout_constraintBottom_toTopOf="@+id/view4"
+                    app:layout_constraintEnd_toEndOf="@+id/taxTxt"
+                    app:layout_constraintTop_toBottomOf="@+id/taxTxt" />
 
                 <View
                     android:id="@+id/view4"
-                    android:layout_width="0dp"
+                    android:layout_width="347dp"
                     android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="16dp"
                     android:background="#ABABAB"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView20" />
+                    app:layout_constraintTop_toBottomOf="@+id/textView21"
+                    tools:layout_editor_absoluteX="16dp" />
 
                 <TextView
                     android:id="@+id/textView24"
