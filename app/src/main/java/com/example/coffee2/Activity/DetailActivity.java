@@ -68,12 +68,12 @@ public class DetailActivity extends BaseActivity {
 
         loadSugarOptions();
         loadIceOptions();
-         if (object != null ) {
-             loadComments(object.getId());
-         } else {
-             Toast.makeText(this, "Không thể lấy ID của sản phẩm", Toast.LENGTH_SHORT).show();
-         }
-         comment();
+        if (object != null ) {
+            loadComments(object.getId());
+        } else {
+            Toast.makeText(this, "Không thể lấy ID của sản phẩm", Toast.LENGTH_SHORT).show();
+        }
+        comment();
 
         paginationLayout = findViewById(R.id.paginationLayout);
         tvCurrentPage = findViewById(R.id.tvCurrentPage);
@@ -165,7 +165,6 @@ public class DetailActivity extends BaseActivity {
 
     private void loadComments(int drinkId) {
         DatabaseReference commentRef = FirebaseDatabase.getInstance().getReference("Comment");
-
         Query query = commentRef.orderByChild("DrinkId").equalTo(drinkId);
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -173,7 +172,7 @@ public class DetailActivity extends BaseActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Comment> allComments = new ArrayList<>();
 
-                // Lọc các bình luận đang hoạt động (active = true)
+                // Lọc các bình luận đang hoạt động
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Comment comment = data.getValue(Comment.class);
                     if (comment != null && comment.isActive()) {
@@ -181,25 +180,41 @@ public class DetailActivity extends BaseActivity {
                     }
                 }
 
-                // Tính tổng số bình luận để phân trang
+                // Tính tổng số bình luận và số trang
                 totalComments = allComments.size();
                 calculateTotalPages();
 
-                // Tính chỉ số bắt đầu và kết thúc cho trang hiện tại
+                // Kiểm tra nếu không có bình luận nào
+                if (totalComments == 0) {
+                    updateCommentList(new ArrayList<>()); // Cập nhật UI với danh sách rỗng
+                    updatePagination();
+                    return;
+                }
+
+                // Đảm bảo currentPage là hợp lệ
+                if (currentPage < 1) {
+                    currentPage = 1;
+                }
+
+                // Tính chỉ số bắt đầu và kết thúc
                 int startIndex = (currentPage - 1) * commentsPerPage;
+
+                // Nếu startIndex vượt quá số bình luận, quay lại trang đầu
+                if (startIndex >= totalComments) {
+                    currentPage = 1;
+                    startIndex = 0;
+                }
+
                 int endIndex = Math.min(startIndex + commentsPerPage, totalComments);
 
-                // Lấy danh sách bình luận cho trang hiện tại
-                List<Comment> currentComments = allComments.subList(startIndex, endIndex);
-
-                // Nếu không có bình luận thì cập nhật UI rỗng
-                if (currentComments.isEmpty()) {
+                // Nếu startIndex >= endIndex, có thể do currentPage không hợp lệ
+                if (startIndex >= endIndex) {
                     updateCommentList(new ArrayList<>());
                     updatePagination();
                     return;
                 }
 
-                // Tải thông tin user cho từng comment
+                List<Comment> currentComments = allComments.subList(startIndex, endIndex);
                 List<Comment> finalCommentList = new ArrayList<>();
                 int[] loadedCount = {0};
 
@@ -223,8 +238,8 @@ public class DetailActivity extends BaseActivity {
                             loadedCount[0]++;
 
                             if (loadedCount[0] == currentComments.size()) {
-                                updateCommentList(finalCommentList);  // Cập nhật UI
-                                updatePagination();  // Cập nhật giao diện phân trang
+                                updateCommentList(finalCommentList);  // Cập nhật danh sách UI
+                                updatePagination();                   // Cập nhật phân trang
                             }
                         }
 
@@ -242,6 +257,9 @@ public class DetailActivity extends BaseActivity {
             }
         });
     }
+
+
+
     private void calculateTotalPages() {
         totalPages = (int) Math.ceil((double) totalComments / commentsPerPage);
         if (currentPage > totalPages) {
@@ -388,7 +406,7 @@ public class DetailActivity extends BaseActivity {
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     Toast.makeText(DetailActivity.this, "Có lỗi khi lấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
-               //     Log.e("Comment", "Error fetching user info: " + databaseError.getMessage());
+                    //     Log.e("Comment", "Error fetching user info: " + databaseError.getMessage());
                 }
             });
         });
