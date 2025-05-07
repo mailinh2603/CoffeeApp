@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.coffee2"
-        minSdk 24
+        minSdk 26
         targetSdk 35
         versionCode 1
         versionName "1.0"
@@ -49,6 +49,8 @@ dependencies {
     implementation libs.gson
     implementation libs.firebase.auth
     implementation libs.cloudinary
+    implementation libs.zxing.core
+    implementation libs.zxing.javase
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)
 }

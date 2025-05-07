@@ -1,5 +1,6 @@
 package com.example.coffee2.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.Timestamp;
+
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,6 +42,7 @@ public class CartActivity extends BaseActivity {
     private double discountAmount = 0.0;
     private List<String> couponList = new ArrayList<>();
     private List<Coupon> availableCoupons = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,19 +53,21 @@ public class CartActivity extends BaseActivity {
         calculateCart();
         initList();
         loadCoupons();
+        binding.button2.setOnClickListener(v -> {
+            startActivity(new Intent(this, PaymentActivity.class));
+        });
     }
 
     private void initList() {
-        if(managmentCart.getListCart().isEmpty()){
+        if (managmentCart.getListCart().isEmpty()) {
             binding.emptyTxt.setVisibility(View.VISIBLE);
             binding.scrollviewCart.setVisibility(View.GONE);
-        }
-        else{
+        } else {
             binding.emptyTxt.setVisibility(View.GONE);
             binding.scrollviewCart.setVisibility(View.VISIBLE);
         }
 
-        LinearLayoutManager linearLayoutManager= new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         binding.cartView.setLayoutManager(linearLayoutManager);
         adapter = new CartAdapter(managmentCart.getListCart(), this, () -> {
             calculateCart();
@@ -179,12 +184,13 @@ public class CartActivity extends BaseActivity {
         }
         return null;
     }
+
     private void reloadCouponSpinner() {
         loadCoupons();
         binding.spinnerCoupons.setSelection(0);
     }
 
-    private void setVariable(){
-        binding.backBtn.setOnClickListener(v ->finish());
+    private void setVariable() {
+        binding.backBtn.setOnClickListener(v -> finish());
     }
 }
