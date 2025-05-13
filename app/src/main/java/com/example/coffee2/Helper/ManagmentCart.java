@@ -81,4 +81,10 @@ public class ManagmentCart {
         tinyDB.putListObject("CartList_" + userId, listItem);
         changeNumberItemsListener.change();
     }
+
+    public void clearCart() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        tinyDB.remove("CartList_" + userId);
+    }
+
 }

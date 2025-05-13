@@ -1,7 +1,7 @@
 package com.example.coffee2.Domain;
 
 public class Bill {
-    private int BillId;
+    private String BillId;
     private String UserId;
     private String OrderDate;
     private String OrderStatus;
@@ -11,11 +11,11 @@ public class Bill {
 
     public Bill() {}
 
-    public int getBillId() {
+    public String getBillId() {
         return BillId;
     }
 
-    public void setBillId(int billId) {
+    public void setBillId(String billId) {
         BillId = billId;
     }
 

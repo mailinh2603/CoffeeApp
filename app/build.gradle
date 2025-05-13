@@ -43,6 +43,7 @@ dependencies {
     implementation libs.credentials.play.services.auth
     implementation libs.googleid
     implementation libs.cardview
+    implementation libs.preference
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
@@ -51,4 +52,10 @@ dependencies {
     implementation libs.cloudinary
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)
+    implementation libs.zxingcore
+    implementation libs.zxingjavase
+    implementation(libs.osmdroid)
+    implementation(libs.maps.sdk)
+    implementation libs.okhttp
+    implementation libs.org.json
 }
