@@ -44,6 +44,7 @@ dependencies {
     implementation libs.googleid
     implementation libs.cardview
     implementation libs.preference
+    implementation fileTree(dir: 'C:\\Users\\maili\\Downloads\\DemoZPDK_Android\\DemoZPDK_Android\\ZPDK-Android', include: ['*.aar', '*.jar'], exclude: [])
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
@@ -58,4 +59,6 @@ dependencies {
     implementation(libs.maps.sdk)
     implementation libs.okhttp
     implementation libs.org.json
+    implementation libs.okhttp.legacy
+    implementation libs.commons.codec
 }

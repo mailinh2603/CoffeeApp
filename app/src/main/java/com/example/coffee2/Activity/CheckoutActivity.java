@@ -54,15 +54,17 @@ public class CheckoutActivity extends BaseActivity {
     ArrayList<String> wardNames = new ArrayList<>();
     EditText roadEditText;
     JSONArray districtsArray;
-
+    private static final int ZP_APP_ID = 2553;           // fix chỗ này
+    private static final String ZP_CALLBACK = "coffee2://zalopay";   // fix chỗ này
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityCheckoutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
         managmentCart = new ManagmentCart(this);
         dbRef = FirebaseDatabase.getInstance().getReference();
-        String[] paymentOptions = {"Tiền mặt", "Chuyển khoản", "Ví điện tử"};
+        String[] paymentOptions = {"Tiền mặt", "Chuyển khoản", "ZaloPay"};
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -80,6 +82,7 @@ public class CheckoutActivity extends BaseActivity {
         binding.totalTxt.setText(String.format(Locale.US, "%.2f đ", total));
 
         binding.checkoutBtn.setOnClickListener(v -> validateAndPlaceOrder());
+        vn.zalopay.sdk.ZaloPaySDK.init(ZP_APP_ID, vn.zalopay.sdk.Environment.SANDBOX);
         binding.backBtn2.setOnClickListener(v -> finish());
     }
 
@@ -132,6 +135,7 @@ public class CheckoutActivity extends BaseActivity {
 
                         if (isWithinDistance(userLat, userLon, QUAN_YEN_HA_LAT, QUAN_YEN_HA_LON, 15)) {
                             runOnUiThread(() -> Toast.makeText(CheckoutActivity.this, "Địa chỉ hợp lệ và trong phạm vi 15km", Toast.LENGTH_SHORT).show());
+
                             placeOrder();
                         } else {
                             runOnUiThread(() -> Toast.makeText(CheckoutActivity.this, "Địa chỉ quá xa (> 15km)", Toast.LENGTH_SHORT).show());
@@ -173,7 +177,10 @@ public class CheckoutActivity extends BaseActivity {
         String selectedPayment = binding.paymentMethodSpinner.getSelectedItem().toString();
 
         String billIdKey = "HD" + System.currentTimeMillis();
-
+        String fullAddress = roadEditText.getText().toString().trim()
+                + ", " + spinnerWard.getSelectedItem().toString().trim()
+                + ", " + spinnerDistrict.getSelectedItem().toString().trim()
+                + ", Hà Nội";
         Bill bill = new Bill();
         bill.setBillId(billIdKey);
         bill.setUserId(userId);
@@ -181,6 +188,7 @@ public class CheckoutActivity extends BaseActivity {
         bill.setOrderStatus("Đang xử lý");
         bill.setPaymentMethod(selectedPayment);
         bill.setTotalPrice(total);
+        bill.setAddress(fullAddress);
 
         DatabaseReference billRef = dbRef.child("Bill").child(billIdKey);
 
@@ -196,7 +204,6 @@ public class CheckoutActivity extends BaseActivity {
 
                 dbRef.child("BillDetails").push().setValue(details);
             }
-
             managmentCart.clearCart();
 
             Toast.makeText(this, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show();
@@ -212,17 +219,62 @@ public class CheckoutActivity extends BaseActivity {
                 intent.putExtra("total", total);
                 startActivity(intent);
                 finish();
+            } else if (selectedPayment.equals("ZaloPay")) {
+                new Thread(() -> {
+                    try {
+                        String amountStr = String.valueOf((int) total);
+                        org.json.JSONObject res = new com.example.coffee2.ZaloPay.CreateOrder()
+                                .createOrder(amountStr);
+                        if ("1".equals(res.getString("return_code"))) {
+                            String zpTransToken = res.getString("zp_trans_token");
+                            runOnUiThread(() -> payWithZalo(zpTransToken, billIdKey));
+                        } else {
+                            runOnUiThread(() ->
+                                    Toast.makeText(this, "Tạo đơn ZaloPay thất bại", Toast.LENGTH_SHORT).show());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        runOnUiThread(() ->
+                                Toast.makeText(this, "Lỗi ZaloPay", Toast.LENGTH_SHORT).show());
+                    }
+                }).start();
             } else {
                 Intent intent = new Intent(CheckoutActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
             }
-
         }).addOnFailureListener(e ->
                 Toast.makeText(this, "Lỗi khi đặt hàng", Toast.LENGTH_SHORT).show()
         );
     }
+
+    private void payWithZalo(String token, String billId) {
+        vn.zalopay.sdk.ZaloPaySDK.getInstance()
+                .payOrder(this, token, ZP_CALLBACK, new vn.zalopay.sdk.listeners.PayOrderListener() {
+                    @Override
+                    public void onPaymentSucceeded(String transId, String transToken, String appTransID) {
+                        Toast.makeText(CheckoutActivity.this, "Thanh toán thành công!", Toast.LENGTH_SHORT).show();
+                        gotoHome();
+                    }
+                    @Override
+                    public void onPaymentCanceled(String zpTransToken, String appTransID) {
+                        Toast.makeText(CheckoutActivity.this, "Bạn đã hủy thanh toán", Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onPaymentError(vn.zalopay.sdk.ZaloPayError error, String zpTransToken, String appTransID) {
+                        Toast.makeText(CheckoutActivity.this, "Lỗi thanh toán: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void gotoHome() {
+        Intent i = new Intent(CheckoutActivity.this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(i);
+        finish();
+    }
+
     private void loadDistrictWardFromJson() {
         try {
             InputStream is = getAssets().open("data.json");
