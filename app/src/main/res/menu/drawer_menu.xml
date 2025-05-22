@@ -1,6 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_home" android:title="Trang chủ" android:icon="@drawable/logo"/>
     <item android:id="@+id/nav_settings" android:title="Chỉnh sửa thông tin cá nhân" android:icon="@drawable/settings"/>
+    <item
+        android:id="@+id/nav_order_tracking"
+        android:title="Theo dõi đơn hàng"
+        android:icon="@drawable/baseline_account_circle_24" />
     <item android:id="@+id/nav_resetPass" android:title="Đổi mật khẩu" android:icon="@drawable/baseline_account_circle_24"/>
     <item android:id="@+id/nav_logout" android:title="Logout" android:icon="@drawable/logout"/>
 </menu>

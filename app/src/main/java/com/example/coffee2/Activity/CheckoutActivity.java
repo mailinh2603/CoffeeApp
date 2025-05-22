@@ -18,8 +18,11 @@ import com.example.coffee2.Helper.ManagmentCart;
 import com.example.coffee2.R;
 import com.example.coffee2.databinding.ActivityCheckoutBinding;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,22 +50,38 @@ public class CheckoutActivity extends BaseActivity {
     private ActivityCheckoutBinding binding;
     private ManagmentCart managmentCart;
     private DatabaseReference dbRef;
-    private String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     private Spinner spinner;
+    private String userIdTuSinh;
     Spinner spinnerDistrict, spinnerWard;
     ArrayList<String> districtNames = new ArrayList<>();
     ArrayList<String> wardNames = new ArrayList<>();
     EditText roadEditText;
     JSONArray districtsArray;
     private static final int ZP_APP_ID = 2553;           // fix chỗ này
-    private static final String ZP_CALLBACK = "coffee2://zalopay";   // fix chỗ này
+    private static final String ZP_CALLBACK = "coffee2://zalopay";
+    private ArrayList<String> sugarOptions;
+    private ArrayList<String> iceOptions;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityCheckoutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         managmentCart = new ManagmentCart(this);
+
+        Intent intent = getIntent();
+        sugarOptions = intent.getStringArrayListExtra("sugarOptions");
+        iceOptions = intent.getStringArrayListExtra("iceOptions");
+
+        if (sugarOptions != null && iceOptions != null) {
+            for (int i = 0; i < sugarOptions.size(); i++) {
+                String sugar = sugarOptions.get(i);
+                String ice = iceOptions.get(i);
+                Log.d("Checkout", "Sản phẩm " + i + ": Đường = " + sugar + ", Đá = " + ice);
+            }
+        } else {
+            Log.d("Checkout", "Không nhận được dữ liệu đường/đá");
+        }
+
         dbRef = FirebaseDatabase.getInstance().getReference();
         String[] paymentOptions = {"Tiền mặt", "Chuyển khoản", "ZaloPay"};
 
@@ -172,6 +191,38 @@ public class CheckoutActivity extends BaseActivity {
     }
 
     private void placeOrder() {
+        String emailDangNhap = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.orderByChild("email").equalTo(emailDangNhap)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                                Log.d("UserData", "User data: " + userSnapshot.getValue().toString());
+                                userIdTuSinh = userSnapshot.child("userId").getValue(String.class);
+                                Log.d("UserID", "1 User ID tự sinh: " + userIdTuSinh);
+
+                                // Sau khi lấy được userIdTuSinh, mới thực hiện tạo đơn hàng:
+                                createBillAndProcessOrder(userIdTuSinh);
+                                break;  // Nếu chỉ có 1 user thì thoát loop
+                            }
+                        } else {
+                            Log.d("UserID", "Không tìm thấy user với email: " + emailDangNhap);
+                            Toast.makeText(CheckoutActivity.this, "Không tìm thấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("UserID", "Lấy userId thất bại", error.toException());
+                        Toast.makeText(CheckoutActivity.this, "Lỗi khi lấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+
+    private void createBillAndProcessOrder(String userIdTuSinh) {
         String orderDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         double total = managmentCart.getTotalFee();
         String selectedPayment = binding.paymentMethodSpinner.getSelectedItem().toString();
@@ -181,9 +232,10 @@ public class CheckoutActivity extends BaseActivity {
                 + ", " + spinnerWard.getSelectedItem().toString().trim()
                 + ", " + spinnerDistrict.getSelectedItem().toString().trim()
                 + ", Hà Nội";
+
         Bill bill = new Bill();
         bill.setBillId(billIdKey);
-        bill.setUserId(userId);
+        bill.setUserId(userIdTuSinh);
         bill.setOrderDate(orderDate);
         bill.setOrderStatus("Đang xử lý");
         bill.setPaymentMethod(selectedPayment);
@@ -195,15 +247,25 @@ public class CheckoutActivity extends BaseActivity {
         billRef.setValue(bill).addOnSuccessListener(unused -> {
             List<Drinks> cartList = managmentCart.getListCart();
 
-            for (Drinks item : cartList) {
+            for (int i = 0; i < cartList.size(); i++) {
+                Drinks item = cartList.get(i);
+
                 BillDetails details = new BillDetails();
                 details.setBillId(billIdKey);
                 details.setDrinkId(item.getId());
                 details.setQuantity(item.getNumberInCart());
                 details.setUnitPrice(item.getPrice());
 
+                // Lấy đường/đá từ Intent nếu có
+                String sugar = (sugarOptions != null && i < sugarOptions.size()) ? sugarOptions.get(i) : "100%";
+                String ice = (iceOptions != null && i < iceOptions.size()) ? iceOptions.get(i) : "100%";
+                String option = "Đường: " + sugar + ", Đá: " + ice;
+
+                details.setOption(option);
+
                 dbRef.child("BillDetails").push().setValue(details);
             }
+
             managmentCart.clearCart();
 
             Toast.makeText(this, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show();

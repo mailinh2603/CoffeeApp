@@ -6,6 +6,7 @@ public class BillDetails {
     private int DrinkId;
     private int Quantity;
     private double UnitPrice;
+    private String Option;
 
     public BillDetails() {}
 
@@ -47,5 +48,13 @@ public class BillDetails {
 
     public void setUnitPrice(double unitPrice) {
         UnitPrice = unitPrice;
+    }
+
+    public String getOption() {
+        return Option;
+    }
+
+    public void setOption(String option) {
+        Option = option;
     }
 }

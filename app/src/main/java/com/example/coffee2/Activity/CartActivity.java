@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.coffee2.Adapter.CartAdapter;
 import com.example.coffee2.Domain.Coupon;
+import com.example.coffee2.Domain.Drinks;
 import com.example.coffee2.Helper.ChangeNumberItemsListener;
 import com.example.coffee2.Helper.ManagmentCart;
 import com.example.coffee2.R;
@@ -54,9 +55,24 @@ public class CartActivity extends BaseActivity {
         calculateCart();
         initList();
         loadCoupons();
+        ArrayList<String> sugarOptions = new ArrayList<>();
+        ArrayList<String> iceOptions = new ArrayList<>();
+
+        for (Drinks drink : managmentCart.getListCart()) {
+            String sugar = drink.getSugarOption();
+            if (sugar == null || sugar.isEmpty()) sugar = "100%";
+            sugarOptions.add(sugar);
+
+            String ice = drink.getIceOption();
+            if (ice == null || ice.isEmpty()) ice = "100%";
+            iceOptions.add(ice);
+        }
+
         binding.button2.setOnClickListener(v -> {
             Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
-            intent.putExtra("total", finalTotal); // Gửi total
+            intent.putExtra("total", finalTotal);
+            intent.putStringArrayListExtra("sugarOptions", sugarOptions);
+            intent.putStringArrayListExtra("iceOptions", iceOptions);
             startActivity(intent);
         });
     }

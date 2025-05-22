@@ -68,6 +68,7 @@ public class SignupActivity extends AppCompatActivity {
 
     private void generateAndStoreUser(users newUser) {
         String userId = generateCustomUserId();
+        newUser.setUserId(userId);
         DatabaseReference userRef = mDatabase.getReference("users").child(userId);
 
         userRef.get().addOnCompleteListener(task -> {
@@ -100,6 +101,7 @@ public class SignupActivity extends AppCompatActivity {
             String birthDate = binding.birthDateEdt.getText().toString();
             String phoneNumber = binding.phoneNumberEdt.getText().toString();
 
+
             if (password.length() < 6) {
                 Toast.makeText(SignupActivity.this, "Mật khẩu phải có ít nhất 6 ký tự", Toast.LENGTH_SHORT).show();
                 return;
@@ -107,7 +109,7 @@ public class SignupActivity extends AppCompatActivity {
 
             mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(SignupActivity.this, task -> {
                 if (task.isSuccessful()) {
-                    users newUser = new users(userName, email, address, birthDate, phoneNumber);
+                    users newUser = new users(userName, email, address, birthDate, phoneNumber,"user",System.currentTimeMillis() );
                     generateAndStoreUser(newUser);
                 } else {
                     Exception e = task.getException();

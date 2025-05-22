@@ -222,8 +222,10 @@ public class MainActivity extends BaseActivity {
             } else if (id == R.id.nav_resetPass) {
                 Intent intent = new Intent(MainActivity.this, ResetPasswordActivity.class);
                 startActivity(intent);
+            }else if (id == R.id.nav_order_tracking) {
+                Intent intent = new Intent(MainActivity.this, OrderTrackingActivity.class);
+                startActivity(intent);
             }
-
             DrawerLayout drawer = findViewById(R.id.drawerLayout);
             drawer.closeDrawer(GravityCompat.START);
             return true;
