@@ -86,7 +86,7 @@ public final class QrUtils {
         final String SERVICE_CODE = "0208QRIBFTTA";
         String bankNumberInfo = "01" + bankNumber.length() + bankNumber;
         Log.d("StartBankNumberInfo | {} | endBankNumberInfo", bankNumberInfo);
-        String bankBin = "970407";
+        String bankBin = "970436";
         final String BANK = "0006" + bankBin + bankNumberInfo;
         String BankInfo = "01" + convertLength(BANK.length()) + BANK;
         Log.d("StartBankInfo |{}| endBankInfo", BankInfo);

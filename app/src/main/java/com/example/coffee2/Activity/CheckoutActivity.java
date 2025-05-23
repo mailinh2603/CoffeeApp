@@ -31,6 +31,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +62,11 @@ public class CheckoutActivity extends BaseActivity {
     private static final String ZP_CALLBACK = "coffee2://zalopay";
     private ArrayList<String> sugarOptions;
     private ArrayList<String> iceOptions;
+    private double total;
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,8 +103,8 @@ public class CheckoutActivity extends BaseActivity {
 
         loadDistrictWardFromJson();
         binding.paymentMethodSpinner.setAdapter(adapter);
-        double total = getIntent().getDoubleExtra("total", 0.0);
-        binding.totalTxt.setText(String.format(Locale.US, "%.2f đ", total));
+        total = getIntent().getDoubleExtra("total", 0.0);
+        binding.totalTxt.setText(formatCurrencyVND(total));
 
         binding.checkoutBtn.setOnClickListener(v -> validateAndPlaceOrder());
         vn.zalopay.sdk.ZaloPaySDK.init(ZP_APP_ID, vn.zalopay.sdk.Environment.SANDBOX);
@@ -224,7 +230,7 @@ public class CheckoutActivity extends BaseActivity {
 
     private void createBillAndProcessOrder(String userIdTuSinh) {
         String orderDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        double total = managmentCart.getTotalFee();
+      //  double total = managmentCart.getTotalFee();
         String selectedPayment = binding.paymentMethodSpinner.getSelectedItem().toString();
 
         String billIdKey = "HD" + System.currentTimeMillis();
@@ -256,11 +262,9 @@ public class CheckoutActivity extends BaseActivity {
                 details.setQuantity(item.getNumberInCart());
                 details.setUnitPrice(item.getPrice());
 
-                // Lấy đường/đá từ Intent nếu có
                 String sugar = (sugarOptions != null && i < sugarOptions.size()) ? sugarOptions.get(i) : "100%";
                 String ice = (iceOptions != null && i < iceOptions.size()) ? iceOptions.get(i) : "100%";
                 String option = "Đường: " + sugar + ", Đá: " + ice;
-
                 details.setOption(option);
 
                 dbRef.child("BillDetails").push().setValue(details);

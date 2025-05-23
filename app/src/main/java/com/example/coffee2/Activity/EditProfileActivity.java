@@ -36,17 +36,37 @@ public class EditProfileActivity extends AppCompatActivity {
         PhoneNumberEditText = binding.editPhoneNumber;
         BirthDateEditText = binding.editBirthDate;
 
-        // Lấy userId từ Firebase Authentication
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        Log.d("EditProfile", "UserId nhận được: " + userId);
+        // Lấy email của người dùng hiện tại từ Firebase Auth
+        String currentEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
 
-        // Lấy thông tin người dùng từ Firebase
-        getUserData(userId);
+        // Duyệt qua "users" để tìm userId tương ứng với email đó
+        FirebaseDatabase.getInstance().getReference("users")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        for (DataSnapshot userSnap : snapshot.getChildren()) {
+                            users user = userSnap.getValue(users.class);
+                            if (user != null && user.getEmail().equals(currentEmail)) {
+                                String userId = userSnap.getKey();  // Lấy userId
+                                Log.d("EditProfile", "userId tìm được theo email: " + userId);
 
-        binding.btnSave.setOnClickListener(v -> updateUserData(userId));
+                                getUserData(userId);  // Lấy dữ liệu người dùng
+                                binding.btnSave.setOnClickListener(v -> updateUserData(userId));
+                                break;
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        showDialog("Lỗi truy vấn email: " + error.getMessage());
+                    }
+                });
+
         BirthDateEditText.setOnClickListener(v -> showDatePickerDialog());
         binding.backBtn.setOnClickListener(v -> finish());
     }
+
 
     // Hàm lấy thông tin người dùng từ Firebase
     private void getUserData(String userId) {
@@ -91,11 +111,11 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         Map<String, Object> updates = new HashMap<>();
-        updates.put("UserName", fullName);
-        updates.put("Email", email);
-        updates.put("Address", address);
-        updates.put("PhoneNumber", phoneNumber);
-        updates.put("BirthDate", birthDate);
+        updates.put("userName", fullName);
+        updates.put("email", email);
+        updates.put("address", address);
+        updates.put("phoneNumber", phoneNumber);
+        updates.put("birthDate", birthDate);
 
         FirebaseDatabase.getInstance().getReference("users")
                 .child(userId)

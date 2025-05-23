@@ -94,12 +94,15 @@ public class CartActivity extends BaseActivity {
         });
         binding.cartView.setAdapter(adapter);
     }
-
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     private void calculateCart() {
         double percenTax = 0.02;
-        double delivery = 10;
+        double delivery = 10000;
 
-        double totalFeeRaw = managmentCart.getTotalFee(); // ← log chỗ này
+        double totalFeeRaw = managmentCart.getTotalFee();
         Log.d("DEBUG_CART", "Total raw fee: " + totalFeeRaw);
 
         String selectedCouponCode = (String) binding.spinnerCoupons.getSelectedItem();
@@ -117,15 +120,13 @@ public class CartActivity extends BaseActivity {
         double total = Math.round((totalFeeRaw + tax + delivery - discountAmount) * 100.0) / 100.0;
         finalTotal = total;
         double itemTotal = Math.round(totalFeeRaw * 100.0) / 100.0;
-        NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
-        format.setMinimumFractionDigits(2);
-        format.setMaximumFractionDigits(2);
 
-        binding.totalFeeTxt.setText(format.format(itemTotal) + " đ");
-        binding.taxTxt.setText(format.format(tax) + " đ");
-        binding.deliveryTxt.setText(format.format(delivery) + " đ");
-        binding.discountTxt.setText("-" + format.format(discountAmount) + " đ");
-        binding.totalTxt.setText(format.format(total) + " đ");
+        // Sử dụng formatCurrencyVND thay vì format US + " đ"
+        binding.totalFeeTxt.setText(formatCurrencyVND(itemTotal));
+        binding.taxTxt.setText(formatCurrencyVND(tax));
+        binding.deliveryTxt.setText(formatCurrencyVND(delivery));
+        binding.discountTxt.setText("-" + formatCurrencyVND(discountAmount));
+        binding.totalTxt.setText(formatCurrencyVND(total));
     }
 
     private void loadCoupons() {
@@ -137,16 +138,12 @@ public class CartActivity extends BaseActivity {
                 availableCoupons.clear();
                 couponList.clear();
 
-                double totalAmount = managmentCart.getTotalFee(); // Lấy giá trị đơn hàng
-                // Lọc các coupon đủ điều kiện
+                double totalAmount = managmentCart.getTotalFee();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Coupon coupon = snapshot.getValue(Coupon.class); // Lấy thông tin coupon
+                    Coupon coupon = snapshot.getValue(Coupon.class);
                     if (coupon != null) {
-                        // Kiểm tra nếu giá trị đơn hàng đủ điều kiện để áp dụng coupon
                         if (totalAmount >= coupon.getMinPurchaseAmount()) {
-                            // Kiểm tra ngày hết hạn của coupon (ExpirationDate)
                             Date expirationDate = coupon.getExpirationDateAsDate();
-                            // So sánh với ngày hiện tại
                             if (expirationDate != null && expirationDate.after(new Date())) {
                                 availableCoupons.add(coupon);
                                 couponList.add(coupon.getCouponCode());
@@ -156,13 +153,12 @@ public class CartActivity extends BaseActivity {
                         }
                     }
                 }
-                // Kiểm tra nếu có coupon hợp lệ
                 if (couponList.isEmpty()) {
                     Log.d("DEBUG_CART", "No valid coupon available");
-                    binding.spinnerCoupons.setVisibility(View.GONE); // Ẩn Spinner nếu không có coupon hợp lệ
+                    binding.spinnerCoupons.setVisibility(View.GONE);
                 } else {
                     Log.d("DEBUG_CART", "Valid coupons available: " + couponList.size());
-                    binding.spinnerCoupons.setVisibility(View.VISIBLE); // Hiển thị Spinner nếu có coupon hợp lệ
+                    binding.spinnerCoupons.setVisibility(View.VISIBLE);
 
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(CartActivity.this, android.R.layout.simple_spinner_item, couponList);
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -171,7 +167,6 @@ public class CartActivity extends BaseActivity {
                     binding.spinnerCoupons.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                            // Áp dụng giảm giá khi người dùng chọn coupon
                             Coupon selectedCoupon = availableCoupons.get(position);
                             double discount = 0.0;
 

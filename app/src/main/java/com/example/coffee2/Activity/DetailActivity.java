@@ -35,8 +35,12 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DetailActivity extends BaseActivity {
     ActivityDetailBinding binding;
@@ -50,9 +54,9 @@ public class DetailActivity extends BaseActivity {
     private LinearLayout paginationLayout;
     private TextView tvCurrentPage;
     private Button btnPrevious, btnNext;
-    private int currentPage = 1;        // Trang hiện tại
-    private int commentsPerPage = 5;    // Số bình luận trên mỗi trang
-    private int totalComments = 0;      // Tổng số bình luận
+    private int currentPage = 1;
+    private int commentsPerPage = 5;
+    private int totalComments = 0;
     private int totalPages = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +67,6 @@ public class DetailActivity extends BaseActivity {
 
         getIntentExtra();
         setVariable();
-
-
-
         loadSugarOptions();
         loadIceOptions();
         if (object != null ) {
@@ -172,7 +173,6 @@ public class DetailActivity extends BaseActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Comment> allComments = new ArrayList<>();
 
-                // Lọc các bình luận đang hoạt động
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Comment comment = data.getValue(Comment.class);
                     if (comment != null && comment.isActive()) {
@@ -180,26 +180,18 @@ public class DetailActivity extends BaseActivity {
                     }
                 }
 
-                // Tính tổng số bình luận và số trang
                 totalComments = allComments.size();
                 calculateTotalPages();
 
-                // Kiểm tra nếu không có bình luận nào
                 if (totalComments == 0) {
-                    updateCommentList(new ArrayList<>()); // Cập nhật UI với danh sách rỗng
+                    updateCommentList(new ArrayList<>());
                     updatePagination();
                     return;
                 }
 
-                // Đảm bảo currentPage là hợp lệ
-                if (currentPage < 1) {
-                    currentPage = 1;
-                }
+                if (currentPage < 1) currentPage = 1;
 
-                // Tính chỉ số bắt đầu và kết thúc
                 int startIndex = (currentPage - 1) * commentsPerPage;
-
-                // Nếu startIndex vượt quá số bình luận, quay lại trang đầu
                 if (startIndex >= totalComments) {
                     currentPage = 1;
                     startIndex = 0;
@@ -207,7 +199,6 @@ public class DetailActivity extends BaseActivity {
 
                 int endIndex = Math.min(startIndex + commentsPerPage, totalComments);
 
-                // Nếu startIndex >= endIndex, có thể do currentPage không hợp lệ
                 if (startIndex >= endIndex) {
                     updateCommentList(new ArrayList<>());
                     updatePagination();
@@ -216,7 +207,7 @@ public class DetailActivity extends BaseActivity {
 
                 List<Comment> currentComments = allComments.subList(startIndex, endIndex);
                 List<Comment> finalCommentList = new ArrayList<>();
-                int[] loadedCount = {0};
+                AtomicInteger loadedCount = new AtomicInteger(0);
 
                 for (Comment comment : currentComments) {
                     String userId = comment.getUserId();
@@ -229,23 +220,31 @@ public class DetailActivity extends BaseActivity {
                                 users user = snapshot.getValue(users.class);
                                 if (user != null) {
                                     comment.setUserName(user.getUserName());
+                                } else {
+                                    comment.setUserName("Ẩn danh");
                                 }
                             } else {
                                 comment.setUserName("Ẩn danh");
                             }
 
-                            finalCommentList.add(comment);
-                            loadedCount[0]++;
+                            synchronized (finalCommentList) {
+                                finalCommentList.add(comment);
+                            }
 
-                            if (loadedCount[0] == currentComments.size()) {
-                                updateCommentList(finalCommentList);  // Cập nhật danh sách UI
-                                updatePagination();                   // Cập nhật phân trang
+                            if (loadedCount.incrementAndGet() == currentComments.size()) {
+                                finalCommentList.sort(Comparator.comparing(Comment::getCublish));
+                                updateCommentList(finalCommentList);
+                                updatePagination();
                             }
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                             Log.e("Linh", "Lỗi khi tải người dùng: " + error.getMessage());
+                            if (loadedCount.incrementAndGet() == currentComments.size()) {
+                                updateCommentList(finalCommentList);
+                                updatePagination();
+                            }
                         }
                     });
                 }
@@ -258,18 +257,12 @@ public class DetailActivity extends BaseActivity {
         });
     }
 
-
-
     private void calculateTotalPages() {
         totalPages = (int) Math.ceil((double) totalComments / commentsPerPage);
         if (currentPage > totalPages) {
             currentPage = totalPages;
         }
     }
-
-
-
-
 
     private void updatePagination() {
         paginationLayout.removeAllViews();  // Xóa các nút cũ
@@ -297,7 +290,6 @@ public class DetailActivity extends BaseActivity {
         tvCurrentPage.setText("Trang " + currentPage + " / " + totalPages);
     }
 
-
     private void updateCommentList(List<Comment> commentList) {
         RecyclerView recyclerView = findViewById(R.id.reviewRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -305,17 +297,10 @@ public class DetailActivity extends BaseActivity {
         recyclerView.setAdapter(adapter);
     }
 
-
-
-
-
-
-
-
-
-
-
-
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
 
     private void setVariable(){
         managmentCart= new ManagmentCart(this);
@@ -326,24 +311,24 @@ public class DetailActivity extends BaseActivity {
                 .load(object.getImagePath())
                 .into(binding.pic);
 
-        binding.priceTxt.setText(object.getPrice() + "đ");
+        binding.priceTxt.setText(formatCurrencyVND(object.getPrice()));
         binding.titleTxt.setText(object.getTitle());
         binding.descriptionTxt.setText(object.getDescription());
         binding.rateTxt.setText(object.getStar() + "Rating");
         binding.ratingBar.setRating((float) object.getStar());
-        binding.totalTxt.setText((num * object.getPrice() + "đ"));
+        binding.totalTxt.setText(formatCurrencyVND((num * object.getPrice())));
 
         binding.plusBtn.setOnClickListener(v ->{
             num=num+1;
             binding.numxt.setText(num+" ");
-            binding.totalTxt.setText((num* object.getPrice())+" đ");
+            binding.totalTxt.setText(formatCurrencyVND(num* object.getPrice()));
         });
 
         binding.minusBtn.setOnClickListener(v -> {
             if(num>1){
                 num=num-1;
                 binding.numxt.setText(num+"");
-                binding.totalTxt.setText((num* object.getPrice())+" đ");
+                binding.totalTxt.setText(formatCurrencyVND((num* object.getPrice())));
             }
         });
 
@@ -363,6 +348,7 @@ public class DetailActivity extends BaseActivity {
         binding.submitReviewBtn.setOnClickListener(v -> {
             String commentDetail = binding.reviewEditText.getText().toString().trim();
             float rating = binding.userRatingBar.getRating();
+
             if (TextUtils.isEmpty(commentDetail)) {
                 Toast.makeText(DetailActivity.this, "Vui lòng nhập bình luận!", Toast.LENGTH_SHORT).show();
                 return;
@@ -371,44 +357,59 @@ public class DetailActivity extends BaseActivity {
                 Toast.makeText(DetailActivity.this, "Vui lòng chọn đánh giá!", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            String userId = (currentUser != null) ? currentUser.getUid() : "anonymous";
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+            if (currentUser == null) {
+                Toast.makeText(DetailActivity.this, "Bạn cần đăng nhập để bình luận!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        String userName = dataSnapshot.child("userName").getValue(String.class);
-                        if (userName == null || userName.isEmpty()) {
-                            userName = "Người dùng ẩn danh";
+            String currentUserEmail = currentUser.getEmail();
+            if (currentUserEmail == null) {
+                Toast.makeText(DetailActivity.this, "Không lấy được email người dùng!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+
+            // Tìm user có email khớp
+            usersRef.orderByChild("email").equalTo(currentUserEmail)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                // Lấy userId và userName từ dữ liệu tìm được
+                                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                                    String userId = userSnapshot.getKey(); // Hoặc userSnapshot.child("userId").getValue(String.class);
+                                    String userName = userSnapshot.child("userName").getValue(String.class);
+                                    if (userName == null || userName.isEmpty()) {
+                                        userName = "Người dùng ẩn danh";
+                                    }
+
+                                    int drinkId = object.getId();
+
+                                    Comment comment = new Comment();
+                                    comment.setCommentDetail(commentDetail);
+                                    comment.setRating((int) rating);
+                                    comment.setUserId(userId);
+                                    comment.setUserName(userName);
+                                    comment.setActive(true);
+                                    comment.setCublish(String.valueOf(System.currentTimeMillis()));
+                                    comment.setDrinkId(drinkId);
+
+                                    submitReviewAndUpdateAverageRating(comment, drinkId);
+                                    break; // vì email là duy nhất nên thoát vòng sau khi lấy user đầu tiên
+                                }
+                            } else {
+                                Toast.makeText(DetailActivity.this, "Không tìm thấy người dùng với email này!", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                   /*     Log.d("Comment", "User ID: " + userId);
-                        Log.d("Comment", "User Name: " + userName);
-                        Log.d("Comment", "Comment Detail: " + commentDetail);
-                        Log.d("Comment", "Rating: " + rating); */
 
-                        int drinkId = object.getId();
-                        Comment comment = new Comment();
-                        comment.setCommentDetail(commentDetail);
-                        comment.setRating((int) rating);
-                        comment.setUserId(userId);
-                        comment.setUserName(userName);
-                        comment.setActive(true);
-                        comment.setCublish(String.valueOf(System.currentTimeMillis()));
-                        comment.setDrinkId(drinkId);
-
-                        submitReviewAndUpdateAverageRating(comment, drinkId);
-                    } else {
-                        Toast.makeText(DetailActivity.this, "Không tìm thấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Toast.makeText(DetailActivity.this, "Có lỗi khi lấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
-                    //     Log.e("Comment", "Error fetching user info: " + databaseError.getMessage());
-                }
-            });
+                        @Override
+                        public void onCancelled(DatabaseError error) {
+                            Toast.makeText(DetailActivity.this, "Lỗi khi truy vấn thông tin người dùng!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
     }
 
@@ -439,7 +440,6 @@ public class DetailActivity extends BaseActivity {
                 int totalRating = 0;
                 int commentCount = 0;
 
-                // Tính tổng số rating và số lượng comment
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Comment comment = data.getValue(Comment.class);
                     if (comment != null && comment.isActive()) {
@@ -449,16 +449,11 @@ public class DetailActivity extends BaseActivity {
                 }
 
                 if (commentCount > 0) {
-                    // Tính trung bình rating
                     float averageRating = (float) totalRating / commentCount;
-
-                    // Cập nhật giá trị trung bình vào trường 'Star' của Drink
                     DatabaseReference drinkRef = FirebaseDatabase.getInstance().getReference("Drinks").child(String.valueOf(drinkId));
                     drinkRef.child("Star").setValue(averageRating).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Log.d("Drink", "Cập nhật trung bình rating thành công cho Drink ID: " + drinkId);
-
-                            // Cập nhật rateTxt với giá trị Star mới
                             updateRateTxt(drinkId);
                         } else {
                             Log.e("Drink", "Cập nhật trung bình rating thất bại cho Drink ID: " + drinkId);
@@ -468,7 +463,6 @@ public class DetailActivity extends BaseActivity {
                     Log.w("Drink", "Không có bình luận nào để tính toán trung bình rating cho Drink ID: " + drinkId);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("Drink", "Lỗi khi truy vấn bình luận: " + error.getMessage());
@@ -484,9 +478,7 @@ public class DetailActivity extends BaseActivity {
                 if (snapshot.exists()) {
                     float star = snapshot.getValue(Float.class);
                     if (star != 0.0f) {
-                        // Làm tròn đến 1 chữ số thập phân
                         String roundedStar = String.format("%.1f", star);
-                        // Cập nhật rateTxt với giá trị của Star từ Firebase
                         binding.rateTxt.setText(roundedStar + " Rating");
                         Log.d("Drink", "Cập nhật rateTxt với giá trị: " + roundedStar);
                         Log.d("Drink", "Cập nhật rateTxt với giá trị: " + roundedStar);
@@ -503,8 +495,6 @@ public class DetailActivity extends BaseActivity {
             }
         });
     }
-
-
 
     private void getIntentExtra(){
         object = (Drinks) getIntent().getSerializableExtra("object");

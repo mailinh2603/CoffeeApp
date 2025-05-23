@@ -18,7 +18,9 @@ import com.example.coffee2.Activity.DetailActivity;
 import com.example.coffee2.Domain.Drinks;
 import com.example.coffee2.R;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class DrinkListAdapter extends RecyclerView.Adapter<DrinkListAdapter.viewholder> {
     ArrayList<Drinks> items;
@@ -27,7 +29,10 @@ public class DrinkListAdapter extends RecyclerView.Adapter<DrinkListAdapter.view
     public DrinkListAdapter(ArrayList<Drinks> items){
         this.items = items;
     }
-
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     @NonNull
     @Override
     public DrinkListAdapter.viewholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,7 +45,7 @@ public class DrinkListAdapter extends RecyclerView.Adapter<DrinkListAdapter.view
     public void onBindViewHolder(@NonNull DrinkListAdapter.viewholder holder, int position) {
         holder.titleTxt.setText(items.get(position).getTitle());
 
-        holder.priceTxt.setText(items.get(position).getPrice() + "đ");
+        holder.priceTxt.setText(formatCurrencyVND(items.get(position).getPrice()));
         holder.rateTxt.setText("" + items.get(position).getStar());
 
         Glide.with(context)

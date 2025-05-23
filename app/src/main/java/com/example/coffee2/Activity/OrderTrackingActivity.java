@@ -17,6 +17,8 @@ import com.example.coffee2.Adapter.OrderDetailsAdapter;
 import com.example.coffee2.Domain.Bill;
 import com.example.coffee2.Domain.BillDetailItem;
 import com.example.coffee2.R;
+import com.example.coffee2.databinding.ActivityEditProfileBinding;
+import com.example.coffee2.databinding.ActivityOrderTrackingBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -43,17 +45,21 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private DatabaseReference drinkRef;
 
     private String currentUserId = null;
+    private ActivityOrderTrackingBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order_tracking);
+        binding = ActivityOrderTrackingBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         initViews();
         setupRecyclerViews();
         initFirebaseReferences();
 
         fetchCurrentUserIdAndLoadBills();
+        binding.backBtn4.setOnClickListener(v -> finish());
     }
 
     private void initViews() {

@@ -18,19 +18,24 @@ import com.example.coffee2.Helper.ChangeNumberItemsListener;
 import com.example.coffee2.Helper.ManagmentCart;
 import com.example.coffee2.R;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
-   ArrayList<Drinks> list;
-   private ManagmentCart managmentCart;
-   ChangeNumberItemsListener changeNumberItemsListener;
+    ArrayList<Drinks> list;
+    private ManagmentCart managmentCart;
+    ChangeNumberItemsListener changeNumberItemsListener;
 
     public CartAdapter(ArrayList<Drinks> list, Context context, ChangeNumberItemsListener changeNumberItemsListener) {
         this.list = list;
         managmentCart = new ManagmentCart(context);
         this.changeNumberItemsListener = changeNumberItemsListener;
     }
-
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     @NonNull
     @Override
     public CartAdapter.viewholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -43,8 +48,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.viewholder> {
         Drinks currentDrink = list.get(position);
 
         holder.title.setText(currentDrink.getTitle());
-        holder.feeEachItem.setText((currentDrink.getNumberInCart() * currentDrink.getPrice()) + " đ");
-        holder.totalEachItem.setText(currentDrink.getNumberInCart() + " * đ" + currentDrink.getPrice());
+        double price = currentDrink.getPrice();
+        int quantity = currentDrink.getNumberInCart();
+        double total = price * quantity;
+
+        holder.feeEachItem.setText(formatCurrencyVND(price)); // đơn giá
+        holder.totalEachItem.setText(formatCurrencyVND(total)); // tổng giá
         holder.num.setText(String.valueOf(currentDrink.getNumberInCart()));
 
 

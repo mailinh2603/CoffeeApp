@@ -82,8 +82,7 @@ public class MainActivity extends BaseActivity {
     private void initBanner() {
         DatabaseReference myRef = database.getReference("Banners");
         binding.progressBar2.setVisibility(View.VISIBLE);
-
-        Query query = myRef.orderByChild("Active").equalTo(true); // Lọc banner có Active = true
+        Query query = myRef.orderByChild("Active").equalTo(true);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -100,7 +99,6 @@ public class MainActivity extends BaseActivity {
                 }
                 binding.progressBar2.setVisibility(View.GONE);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 binding.progressBar2.setVisibility(View.GONE);
@@ -110,11 +108,10 @@ public class MainActivity extends BaseActivity {
     }
 
     private void getUserName() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); // lấy trực tiếp từ Auth
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         if (userId != null) {
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
-
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -124,7 +121,6 @@ public class MainActivity extends BaseActivity {
                         userNameTxt.setText(userName);
                     }
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     Toast.makeText(MainActivity.this, "Lỗi truy vấn dữ liệu", Toast.LENGTH_SHORT).show();
@@ -144,10 +140,8 @@ public class MainActivity extends BaseActivity {
                 if(snapshot.exists()){
                     for (DataSnapshot issue : snapshot.getChildren()){
                         Drinks drink = issue.getValue(Drinks.class);
-                        list.add(drink);
-
-                        if (drink != null) {
-                            Log.d("BestDrinkDebug", "ImagePath: " + drink.getImagePath());
+                        if (drink != null && drink.isActive()) {
+                            list.add(drink);
                         }
                     }
                     if(list.size()>0){

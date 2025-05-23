@@ -39,7 +39,7 @@
             android:layout_margin="10dp"
             android:background="@drawable/red_button_background_cart"
             android:gravity="center"
-            android:text="Login"
+            android:text="Đăng nhâp"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -53,7 +53,7 @@
             android:layout_marginEnd="10dp"
             android:background="@drawable/red_button_background_cart"
             android:gravity="center"
-            android:text="Sign Up"
+            android:text="Đăng ký"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold" />

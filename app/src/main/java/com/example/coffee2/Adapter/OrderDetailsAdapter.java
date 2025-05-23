@@ -13,7 +13,9 @@ import com.bumptech.glide.Glide;
 import com.example.coffee2.Domain.BillDetailItem;
 import com.example.coffee2.R;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class OrderDetailsAdapter extends RecyclerView.Adapter<OrderDetailsAdapter.OrderViewHolder> {
 
@@ -22,7 +24,10 @@ public class OrderDetailsAdapter extends RecyclerView.Adapter<OrderDetailsAdapte
     public OrderDetailsAdapter(List<BillDetailItem> list) {
         this.list = list;
     }
-
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     @NonNull
     @Override
     public OrderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -36,15 +41,12 @@ public class OrderDetailsAdapter extends RecyclerView.Adapter<OrderDetailsAdapte
         BillDetailItem item = list.get(position);
         holder.tvName.setText(item.name);
         holder.tvOption.setText(item.option);
-        holder.tvPrice.setText("Giá: " + item.price + "₫");
+        holder.tvPrice.setText("Giá: " + formatCurrencyVND(item.price));
         holder.tvQuantity.setText("Số lượng: " + item.quantity);
 
         Glide.with(holder.itemView.getContext())
                 .load(item.imagePath)
                 .into(holder.imgDrink);
-
-        // Bỏ xử lý click popup nhỏ từng item
-        // Nếu cần, có thể xử lý click ở đây, nhưng popup lớn đã hiển thị toàn bộ rồi
     }
 
     @Override

@@ -19,7 +19,9 @@ import com.example.coffee2.Domain.Drinks;
 import com.example.coffee2.R;
 
 import java.lang.reflect.Array;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class BestDrinkAdapter extends RecyclerView.Adapter<BestDrinkAdapter.viewholder>{
     ArrayList<Drinks> items;
@@ -29,6 +31,10 @@ public class BestDrinkAdapter extends RecyclerView.Adapter<BestDrinkAdapter.view
         this.items = items;
     }
 
+    public static String formatCurrencyVND(double price) {
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return formatter.format(price);
+    }
     @NonNull
     @Override
     public BestDrinkAdapter.viewholder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,7 +46,7 @@ public class BestDrinkAdapter extends RecyclerView.Adapter<BestDrinkAdapter.view
     @Override
     public void onBindViewHolder(@NonNull BestDrinkAdapter.viewholder holder, int position) {
         holder.titleTxt.setText(items.get(position).getTitle());
-        holder.priceTxt.setText(items.get(position).getPrice()+"đ");
+        holder.priceTxt.setText(formatCurrencyVND(items.get(position).getPrice()));
 
         holder.starTxt.setText(""+items.get(position).getStar());
 
